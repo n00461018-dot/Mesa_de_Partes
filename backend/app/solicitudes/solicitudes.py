@@ -135,4 +135,46 @@ def extension_valida(nombre):
 
 def registrar_tramite(pos_usuario, tipo, datos, adjunto):
 
-    return 
+    #Validaciones previas a registrar el trámite
+
+    #Validar en caso el rol del usuario sea diferente a ciudadano no permitirá registrar
+    if roles[pos_usuario] != "ciudadano":
+        return "Error: Solo los ciudadanos pueden registrar trámites."
+    
+    #Validar si el tipo de trámite está en la lista tipos_nombre
+    #Usamos la funcion buscar_posicion para obtener el indice encontrado
+    indice_tipotramite = buscar_posicion(tipos_nombres, tipo)
+    if indice_tipotramite is None:
+        return "Error: Tipo de trámite no válido."
+        
+    #Se crea variable con los campos obligatorios del trámite de acuerdo a su índice
+    campos = tipos_campos[indice_tipotramite]
+    
+    #Si existe una diferencia en la cantidad de datos y los campos requeridos se mostrará el mensaje de error
+    if len(datos) != len(campos):
+        return "Error: Cantidad de datos incorrecta."
+    
+    #Validar si algún dato ingresado está vacío y mostrar error de acuerdo al valor del índice
+    for i in range(len(datos)):
+        if datos[i].strip() == "":
+            return "Error: El campo '" + campos[i] + "' no puede estar vacío."
+    
+    #Validar si la extensión adjuntada no está permitida y mostrar un error.
+    if not extension_valida(adjunto):
+        return "Error: Extensión del adjunto no permitida."
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    return True
+
+    
