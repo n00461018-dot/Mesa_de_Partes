@@ -251,9 +251,28 @@ def cambiar_estado(codigo, accion, pos_usuario, mensaje="", area_destino=""):
 
     #Si la accion es derivar y se ingresa un area destino que no está en la lista areas_nombres se mostrará un error
     if accion == "derivar":
-        if buscar_posicion(areas_nombres, area_destino) == -1:
+        if buscar_posicion(areas_nombres, area_destino) is None:
             return "Error: Área de destino no válida."   
     
 
+    #------------------------------------------Cambio de estado---------------------------------------------------------------------------
 
-    return "Se cambia el estado"
+    #Se guarda el valor del nuevo estado con los valores de la transicion que se obtuvo en la validacion previa
+    #El indice 3 contiene el estado nuevo
+    estado_nuevo = transicion[3]
+    #Se guarda este valor en la lista paralela de tramites_estados
+    tramites_estados[indice_codigo] = estado_nuevo
+
+    #Si se deriva el tramite se cambia el área destino y se deja vacio el responsable
+    if accion == "derivar":
+        tramites_areas[indice_codigo] = area_destino
+        tramites_responsables[indice_codigo] = ""
+
+    #Si la accion es tomar el trámite se le asigna el responsable y mantiene su área actual
+    elif accion == "tomar":
+        tramites_responsables[indice_codigo] = usuarios[pos_usuario]    
+
+
+    #Si la función se completa correctamente devolverá un True
+    return True
+
