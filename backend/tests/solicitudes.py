@@ -164,17 +164,37 @@ def registrar_tramite(pos_usuario, tipo, datos, adjunto):
         return "Error: Extensión del adjunto no permitida."
 
 
-
-
-
-
-
-
-
-
-
-
+    #Se creará código de trámite con un formato 2026-xxxxxx
+    #Extraer el año actual
+    año = fecha_actual()[:4]
     
-    return True
+    #Extraer el número de trámite nuevo (sumandole 1 al total de códigos existente)
+    numero = len(tramites_codigos) + 1
+    
+    #Se crea codigo con formato 2026-xxxxxx
+    codigo = año + "-" + str(numero).zfill(6)
+    
+    #Se crea una lista temporal con una lista de los datos completados por el usuario
+    #De acuerdo a la cantidad de campos del trámite
+    lineas = []
+    for i in range(len(campos)):
+        #Se agrega cada dato ingresado a la lista lineas
+        lineas.append(campos[i] + ": " + datos[i])
+    
+
+    #Añadir los valores a las tablas paralelas
+    
+    tramites_codigos.append(codigo) #codigo
+    tramites_documentos.append(documentos[pos_usuario]) #dni
+    tramites_tipos.append(tipo) #tipo tramite
+    tramites_datos.append(lineas) #datos de tramite (tramites_datos es una lista de listas)
+    tramites_adjuntos.append(adjunto) #documentoa djunto
+    tramites_estados.append("Registrado") #estado de trámite inicial
+    tramites_areas.append("Mesa de partes") #área de trámite inicial
+    tramites_responsables.append("") #trabajador responsable pendiente
+    tramites_fechas.append(fecha_actual()) #fecha del trámite
+
+
+    return codigo
 
     
