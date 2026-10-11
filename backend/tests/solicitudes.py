@@ -197,4 +197,63 @@ def registrar_tramite(pos_usuario, tipo, datos, adjunto):
 
     return codigo
 
+
+#Función para cambiar estado de la solicitud (solicita codigo tramite, accion, posicion, mensaje y area_destino)
+def cambiar_estado(codigo, accion, pos_usuario, mensaje="", area_destino=""):
+
+    #--------------------------------------Validacion de errores-------------------------------------------------------
+
+    #Se usa la función buscar_posicion para validar si el tramite no existe debe mostrar error
+    indice_codigo = buscar_posicion(tramites_codigos, codigo)
+    if indice_codigo is None:
+        return "Error: Trámite no encontrado."    
+
+    #Se extrae el estado del trámite en la lista tramites_estados de acuerdo al indice del código
+    estado_actual = tramites_estados[indice_codigo]
+
+    #Se extrae el rol del usuario de la lista de roles general de acuerdo a su indice
+    rol_usuario = roles[pos_usuario]
+
+
+    #Validacion de los cambios de estado permitidos--------------------------------
+
+    #Se crea una tupla con valor None antes de validar
+    transicion = None
+
+    #Si la accion está permitida en la lista de TRANSICIONES los valores se guardan en la tupla transicion
+    #Recorremos los elementos en TRANSICIONES
+    for orig, acc, rol, dest in TRANSICIONES:
+        #Si los valores de orig, accion y rol coinciden
+        if orig == estado_actual and acc == accion and rol == rol_usuario:
+            #Se guardan los valores en la tupla
+            transicion = (orig, acc, rol, dest)
+            break
+    #Si la tupla transicion sigue como  None se mostrará un error
+    if not transicion:
+        return "Error: La acción no es válida, el estado no coincide o no tiene el rol autorizado."
+
+    # Validaciones adicionales para trabajadores---------------------------------
+
+    #Si el rol de usuario es trabajador y tiene un área diferente al del trámite mostrará un error
+    if rol_usuario == "trabajador":
+        if areas_usuario[pos_usuario] != tramites_areas[indice_codigo]:
+            return "Error: El trámite no pertenece a su área asignada."
+
+        #Si el trámite tiene un responsable diferente al asignado mostrará un error
+        if estado_actual == "En proceso" and tramites_responsables[indice_codigo] != usuarios[pos_usuario]:
+            return "Error: Solo el responsable actual puede gestionar este trámite."
+
+    #Validacion para el contenido de la accion--------------------------------
+
+    #Si la accion es una diferente a tomar trámite y el mensajes está vacio se mostrará un error
+    if accion != "tomar" and mensaje.strip() == "":
+        return "Error: Debe ingresar un mensaje para esta acción."    
+
+    #Si la accion es derivar y se ingresa un area destino que no está en la lista areas_nombres se mostrará un error
+    if accion == "derivar":
+        if buscar_posicion(areas_nombres, area_destino) == -1:
+            return "Error: Área de destino no válida."   
     
+
+
+    return "Se cambia el estado"
