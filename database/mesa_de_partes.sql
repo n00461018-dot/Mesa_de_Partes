@@ -203,6 +203,84 @@ PRIMARY KEY (`id_derivacion`),
 ENGINE = InnoDB;
 
 
+
+-- -----------------------------------------------------
+-- Table `mesa_de_partes`.`incidencia`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mesa_de_partes`.`incidencia` (
+  `id_incidencia` INT NOT NULL AUTO_INCREMENT,
+  `tipo_incidencia` VARCHAR(50) NOT NULL,
+  `descripcion` VARCHAR(300) NOT NULL,
+  `estado` VARCHAR(50) NOT NULL,
+  `fecha_registro` DATETIME NOT NULL,
+  `fecha_resolucion` DATETIME NULL,
+  `id_expediente` INT NOT NULL,
+  `id_usuario` INT NOT NULL,
+  PRIMARY KEY (`id_incidencia`),
+
+    CONSTRAINT `fk_incidencia_expediente`
+        FOREIGN KEY (`id_expediente`)
+        REFERENCES `mesa_de_partes`.`expediente` (`id_expediente`),
+
+    CONSTRAINT `fk_incidencia_usuario`
+        FOREIGN KEY (`id_usuario`)
+        REFERENCES `mesa_de_partes`.`usuario` (`id_usuario`)
+    )
+ENGINE = InnoDB;
+
+
+
+-- -----------------------------------------------------
+-- Table `mesa_de_partes`.`notificacion`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mesa_de_partes`.`notificacion` (
+  `id_notificacion` INT NOT NULL AUTO_INCREMENT,
+  `destinatario` VARCHAR(100) NOT NULL,
+  `mensaje` VARCHAR(300) NOT NULL,
+  `tipo_notificacion` VARCHAR(50) NOT NULL,
+  `estado_envio` VARCHAR(50) NOT NULL,
+  `fecha_envio` DATETIME NULL,
+  `id_expediente` INT NOT NULL,
+  `id_usuario` INT NOT NULL,
+  PRIMARY KEY (`id_notificacion`),
+
+    CONSTRAINT `fk_notificacion_expediente`
+        FOREIGN KEY (`id_expediente`)
+        REFERENCES `mesa_de_partes`.`expediente` (`id_expediente`),
+
+    CONSTRAINT `fk_notificacion_usuario`
+        FOREIGN KEY (`id_usuario`)
+        REFERENCES `mesa_de_partes`.`usuario` (`id_usuario`)
+    )
+ENGINE = InnoDB;
+
+
+
+-- -----------------------------------------------------
+-- Table `mesa_de_partes`.`respuesta_correo`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mesa_de_partes`.`respuesta_correo` (
+  `id_respuesta` INT NOT NULL AUTO_INCREMENT,
+  `correo_destino` VARCHAR(100) NOT NULL,
+  `asunto` VARCHAR(200) NOT NULL,
+  `contenido` TEXT NOT NULL,
+  `fecha_envio` DATETIME NULL,
+  `estado_envio` VARCHAR(50) NOT NULL,
+  `id_expediente` INT NOT NULL,
+  `id_usuario` INT NOT NULL,
+  PRIMARY KEY (`id_respuesta`),
+
+    CONSTRAINT `fk_respuesta_correo_expediente`
+        FOREIGN KEY (`id_expediente`)
+        REFERENCES `mesa_de_partes`.`expediente` (`id_expediente`),
+
+    CONSTRAINT `fk_respuesta_correo_usuario`
+        FOREIGN KEY (`id_usuario`)
+        REFERENCES `mesa_de_partes`.`usuario` (`id_usuario`)
+    )
+ENGINE = InnoDB;
+
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
