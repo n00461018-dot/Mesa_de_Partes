@@ -56,7 +56,7 @@ def pantalla_login():
     
     while True:
         titulo_menu("Acceso al Sistema")
-        identificador = input("Usuario, código o DNI (o 'salir'): ").strip()
+        identificador = input("Ingrese Usuario, código o DNI (o 'salir'): ").strip()
         if identificador.lower() == "salir":
             return None
         clave = input("Contraseña: ").strip()
@@ -89,24 +89,21 @@ def opciones_rol(id_rol):
         return [
             "Derivar trámites",
             "Registrar personal",
-            "Gestionar personal y áreas (cambiar área, resetear contraseña, activar o inactivar, crear áreas)",
-            "Reportes y log (trámites por área y estado, historial de acciones)",
+            "Gestionar personal y áreas (cambiar área, crear usuarios)",
+            "Reportes (trámites por área y estado, historial de acciones)",
             "Buscar trámites de todas las áreas (documento, expediente o estado)",
-            "Cambiar contraseña",
             "Cerrar sesión",
         ]
     elif id_rol == 2:  # Trabajador
         return [
             "Bandeja de mi área",
-            "Buscar trámites de mi área",
-            "Cambiar contraseña",
+            "Buscar trámites",
             "Cerrar sesión",
         ]
     elif id_rol == 3:  # Ciudadano
         return [
             "Registrar trámite",
             "Mis trámites y búsqueda (expediente o estado)",
-            "Cambiar contraseña",
             "Cerrar sesión",
         ]
     return []
@@ -139,21 +136,29 @@ def ejecutar_menu(usuario):
             print(f"Área: {usuario['nombre_area']}")
         print("-" * 50)
 
+
         #Se imprimen las opciones numeradas desde el número 1 (i+1)
         for i in range(len(opciones)):
             print(f" {i + 1}. {opciones[i]}")
 
+
+
         #Se pide la opción y se valida que sea un número dentro del rango
         eleccion = input("\nSeleccione una opción: ").strip()
+
+        #Si la opción escogida no es un número o no está en el rango de opciones se mostrará un error
         if not eleccion.isdigit() or not 1 <= int(eleccion) <= len(opciones):
+
             input("\nOpción no válida. Presione Enter para reintentar.")
+            #Se regresa al inicio del Bucle
             continue
 
-        #La última opción siempre es Cerrar sesión: se despide y se vuelve al login
+
+        #La última opción siempre es Cerrar sesión: Se vuelve al login
         numero = int(eleccion)
         if numero == len(opciones):
             titulo_menu("Salida")
-            print("Sesión cerrada correctamente.")
+            print("Sesión terminada.")
             input("\nPresione Enter para continuar.")
             return
 
@@ -164,10 +169,10 @@ def ejecutar_menu(usuario):
 
 
 
-#PROGRAMA PRINCIPAL
+#FUNCION PRINCIPAL PARA EL MENÚ
 
 def main():
-    #El programa se repite: login, menú y de nuevo login al cerrar sesión
+    #Las funciones de pantalla_login y ejecutar_menu se repiten al cerrar sesión
     while True:
         #Se pide el login; si el usuario escribe 'salir' devuelve None
         usuario = pantalla_login()
@@ -178,6 +183,6 @@ def main():
         #Si el login fue correcto, se abre el menú según su rol
         ejecutar_menu(usuario)
 
-
+#Si el archivo es menu.py ejecutar el main() directamente
 if __name__ == "__main__":
     main()
