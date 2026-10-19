@@ -1,67 +1,108 @@
-# Define la función para gestionar el inicio de sesión del administrador
-def login_admin():
-    # Imprimimos el inicio del LOGIN ADMINISTRADOR
-    print("\n--- LOGIN ADMINISTRADOR ---")
-    # Solicita el nombre de usuario por consola y remueve espacios en blanco al inicio y al final
-    usuario = input("Usuario Admin: ").strip()
-    # Solicita la contraseña por consola y remueve espacios en blanco al inicio y al final
-    clave = input("Contraseña: ").strip()
+import mysql.connector
+from mysql.connector import Error
 
-    # Comprueba si el usuario ingresado es "admin" y la contraseña es "1234"
-    if usuario == "admin" and clave == "1234":
-        # Informa en pantalla que el acceso fue concedido al rol de administrador
-        print("Acceso concedido: Administrador")
-        # Retorna True indicando autenticación exitosa
-        return True
-    # En caso de que las credenciales no coincidan con los valores esperados
-    else:
-        # Informa en pantalla que las credenciales ingresadas son erróneas
-        print("Credenciales de administrador incorrectas.")
-        # Retorna False indicando que falló el inicio de sesión
+# CONEXIÓN A LA BASE DE DATOS
+def conectar_bd():
+    # Se intenta conectar a MySQL; si falla se avisa y se devuelve None
+    try:
+        return mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="admin",
+            database="mesa_de_partes",
+        )
+    except Error as e:
+        print(f"\n[!] Error al conectar con la base de datos MySQL: {e}")
+        return None
+
+
+# MEJORA 1: Función básica para validar el formato antes de consultar la BD
+def validar_formato_entrada(identificador, clave):
+    if identificador == "" or clave == "":
+        print("\n[!] Error: No puede dejar el usuario o la contraseña en blanco.")
         return False
 
+    # En la BD el DNI tiene 8 dígitos numéricos y el correo contiene '@' y '.'
+    es_dni = identificador.isdigit() and len(identificador) == 8
+    es_correo = "@" in identificador and "." in identificador
 
-# Define la función para gestionar el inicio de sesión de empleados de planilla
-def login_empleado():
-    # Imprimimos el inicio del LOGIN EMPLEADO
-    print("\n--- LOGIN EMPLEADO (PLANILLA) ---")
-    # Solicita el código de planilla y remueve los espacios en blanco sobrantes
-    codigo = input("Código de planilla: ").strip()
-    # Solicita la contraseña del empleado y remueve los espacios en blanco sobrantes
-    clave = input("Contraseña: ").strip()
-
-    # Verifica si el código es exactamente "emp01" y la contraseña es "muni"
-    if codigo == "emp01" and clave == "muni":
-        # Muestra en consola que la autenticación del empleado fue exitosa
-        print("Acceso concedido: Empleado en planilla")
-        # Retorna True confirmando el acceso correcto
-        return True
-    # En caso de que el código o la clave no sean correctos
-    else:
-        # Muestra un mensaje notificando el error de credenciales
-        print("Credenciales de empleado incorrectas.")
-        # Retorna False impidiendo el acceso
+    if not es_dni and not es_correo:
+        print("\n[!] Formato inválido: Ingrese un DNI de 8 dígitos o un correo válido.")
         return False
 
+    return True
 
-# Define la función para gestionar el inicio de sesión de ciudadanos o clientes
-def login_cliente():
-    # Imprimimos el inicio del LOGIN CLIENTE
-    print("\n--- LOGIN CIUDADANO (CLIENTE) ---")
-    # Solicita el número de DNI y elimina los espacios en blanco accidentales
-    dni = input("Ingrese su DNI: ").strip()
-    # Solicita la contraseña del ciudadano y elimina los espacios en blanco accidentales
-    clave = input("Contraseña: ").strip()
 
-    # Compara si el DNI es "12345678" y la contraseña corresponde a "abcd"
-    if dni == "12345678" and clave == "abcd":
-        # Notifica al usuario que su inicio de sesión como ciudadano ha sido exitoso
-        print("Acceso concedido: Ciudadano")
-        # Retorna True indicando que la verificación fue aprobada
-        return True
-    # Si el DNI o la contraseña no coinciden
-    else:
-        # Informa en consola que los datos ingresados no son válidos
-        print("DNI o contraseña incorrectos.")
-        # Retorna False denegando el ingreso
+# Función para iniciar sesión (Consulta el DNI o correo y la contraseña en la BD)
+def iniciar_sesion(identificador, clave):
+    # Devuelve un diccionario con los datos del usuario, None si no lo encuentra
+    # o False si hubo un error con la base de datos
+    conexion = conectar_bd()
+    if conexion is None:
         return False
+
+    cursor = None
+    try:
+        cursor = conexion.cursor(dictionary=True)
+        # MEJORA 2: Agregamos u.dni, u.id_area y c.id_ciudadano para usarlos luego en menu.py
+        sql = """
+            SELECT u.id_usuario, u.dni, u.nombre, u.apellido, u.id_rol, 
+                   u.id_area, a.nombre AS nombre_area, c.id_ciudadano
+            FROM usuario u
+            LEFT JOIN area a ON u.id_area = a.id_area
+            LEFT JOIN ciudadano c ON u.id_usuario = c.id_usuario
+            WHERE (u.dni = %s OR u.correo = %s) AND u.contrasena = %s
+        """
+        cursor.execute(sql, (identificador, identificador, clave))
+        return cursor.fetchone()
+
+    except Error as e:
+        print(f"Error en la consulta: {e}")
+        return False
+    finally:
+        # Siempre se cierran el cursor y la conexión
+        if cursor is not None:
+            cursor.close()
+        conexion.close()
+
+
+# Función para mostrar el login con límite de intentos
+def pantalla_login():
+    # MEJORA 3: Contador de intentos permitidos
+    intentos_restantes = 3
+
+    while intentos_restantes > 0:
+        print(f"Intentos disponibles: {intentos_restantes}")
+        print("-" * 54)
+
+        identificador = input("Ingrese DNI o correo (o 'salir'): ").strip()
+        if identificador.lower() == "salir":
+            return None
+
+        clave = input("Contraseña: ").strip()
+
+        # Primero validamos el formato sin gastar conexión a MySQL
+        if not validar_formato_entrada(identificador, clave):
+            input("\nPresione Enter para intentar de nuevo.")
+            continue
+
+        # Si el formato es correcto, consultamos en la Base de Datos
+        usuario = iniciar_sesion(identificador, clave)
+
+        if usuario is False:
+            print("\nNo se pudo consultar la base de datos. Intente de nuevo.")
+            input("\nPresione Enter para continuar.")
+        elif usuario is None:
+            intentos_restantes -= 1
+            print("\n[X] DNI/correo o contraseña incorrectos.")
+            if intentos_restantes > 0:
+                input(f"\nLe quedan {intentos_restantes} intento(s). Presione Enter para continuar.")
+            else:
+                print("\n[!] Ha superado el límite de 3 intentos fallidos. Acceso bloqueado.")
+                input("\nPresione Enter para salir del sistema.")
+                return None
+        else:
+            # Si las credenciales son correctas, damos bienvenida y retornamos el diccionario
+            print(f"\n[OK] ¡Bienvenido(a), {usuario['nombre']} {usuario['apellido']}!")
+            input("Presione Enter para ingresar a su menú...")
+            return usuario
