@@ -1,6 +1,6 @@
 import mysql.connector
 from mysql.connector import Error
-
+from solicitudes.extra import titulo_menu
 # CONEXIÓN A LA BASE DE DATOS
 def conectar_bd():
     # Se intenta conectar a MySQL; si falla se avisa y se devuelve None
@@ -72,6 +72,7 @@ def pantalla_login():
     intentos_restantes = 3
 
     while intentos_restantes > 0:
+        titulo_menu("Acceso al Sistema")
         print(f"Intentos disponibles: {intentos_restantes}")
         print("-" * 54)
 
