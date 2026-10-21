@@ -28,7 +28,7 @@ Algoritmo Login_Mesa_De_Partes
 			SiNo
 				// DNI solo puede tener una longitud de 8 caracteres 
 				es_dni <- (Longitud(identificador) = 8)
-				es_correo <- (Longitud(identificador) > 8)
+				es_correo <- (Longitud(identificador) >= 6)
 				
 				Si No es_dni Y No es_correo Entonces
 					Escribir "[!] Formato inválido: Ingrese un DNI de 8 dígitos o un correo válido."
