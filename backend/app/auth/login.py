@@ -16,7 +16,7 @@ def conectar_bd():
         return None
 
 
-# MEJORA 1: Función básica para validar el formato antes de consultar la BD
+# Función básica para validar el formato antes de consultar la BD
 def validar_formato_entrada(identificador, clave):
     if identificador == "" or clave == "":
         print("\n[!] Error: No puede dejar el usuario o la contraseña en blanco.")
@@ -44,7 +44,7 @@ def iniciar_sesion(identificador, clave):
     cursor = None
     try:
         cursor = conexion.cursor(dictionary=True)
-        # MEJORA 2: Agregamos u.dni, u.id_area y c.id_ciudadano para usarlos luego en menu.py
+        # Agregamos u.dni, u.id_area y c.id_ciudadano para usarlos luego en menu.py
         sql = """
             SELECT u.id_usuario, u.dni, u.nombre, u.apellido, u.id_rol, 
                    u.id_area, a.nombre AS nombre_area, c.id_ciudadano
@@ -68,7 +68,7 @@ def iniciar_sesion(identificador, clave):
 
 # Función para mostrar el login con límite de intentos
 def pantalla_login():
-    # MEJORA 3: Contador de intentos permitidos
+    # Contador de intentos permitidos
     intentos_restantes = 3
 
     while intentos_restantes > 0:
