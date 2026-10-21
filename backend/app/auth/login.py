@@ -22,9 +22,15 @@ def validar_formato_entrada(identificador, clave):
         print("\n[!] Error: No puede dejar el usuario o la contraseña en blanco.")
         return False
 
-    # En la BD el DNI tiene 8 dígitos numéricos y el correo contiene '@' y '.'
+    # En la BD el DNI tiene 8 dígitos numéricos
     es_dni = identificador.isdigit() and len(identificador) == 8
-    es_correo = "@" in identificador and "." in identificador
+    # El correo debe contener un @, un punto (.), no debe tener espacios y debe de tener 6 caracteres o más
+    es_correo = (
+        "@" in identificador
+        and "." in identificador
+        and " " not in identificador
+        and len(identificador) >= 6
+    )
 
     if not es_dni and not es_correo:
         print("\n[!] Formato inválido: Ingrese un DNI de 8 dígitos o un correo válido.")
@@ -51,7 +57,7 @@ def iniciar_sesion(identificador, clave):
             FROM usuario u
             LEFT JOIN area a ON u.id_area = a.id_area
             LEFT JOIN ciudadano c ON u.id_usuario = c.id_usuario
-            WHERE (u.dni = %s OR u.correo = %s) AND u.contrasena = %s
+            WHERE (u.dni = %s OR u.correo = %s) AND BINARY u.contrasena = %s
         """
         cursor.execute(sql, (identificador, identificador, clave))
         return cursor.fetchone()
