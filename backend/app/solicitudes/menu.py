@@ -1,9 +1,5 @@
 from solicitudes.extra import titulo_menu
 
-import os
-import sys
-
-# Esto sube un nivel desde 'solicitudes' hasta la carpeta 'app' para ubicar 'auth'
 
 
 #Importar funciones de login.py
@@ -31,6 +27,7 @@ def opciones_rol(id_rol):
             "Registrar trámite",
             "Derivar trámites",
             "Registrar personal",
+            "Gestionar ciudadanos",
             "Gestionar personal y áreas",
             "Reportes (trámites por área y estado)",
             "Buscar trámites de todas las áreas",
@@ -59,6 +56,7 @@ funciones_menu = {
         "Registrar trámite": "Ingresar el nombre de la funcion",
         "Derivar trámites": "Ingresar el nombre de la funcion",
         "Registrar personal": "Ingresar el nombre de la funcion",
+        "Gestionar ciudadanos":"Ingresar el nombre de la funcion",
         "Gestionar personal y áreas": "Ingresar el nombre de la funcion",
         "Reportes (trámites por área y estado)": "Ingresar el nombre de la funcion",
         "Buscar trámites de todas las áreas": "Ingresar el nombre de la funcion",
