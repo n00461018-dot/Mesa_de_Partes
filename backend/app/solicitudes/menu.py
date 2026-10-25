@@ -1,4 +1,4 @@
-from extra import titulo_menu
+from solicitudes.extra import titulo_menu
 
 import os
 import sys
@@ -108,23 +108,3 @@ def ejecutar_menu(usuario):
         titulo_menu(opciones[numero - 1])
         print(f"[En desarrollo] Funcionalidad para: {opciones[numero - 1]}")
         input("\nPresione Enter para regresar al menú.")
-
-
-
-#FUNCION PRINCIPAL PARA EL MENÚ
-
-def main():
-    #Las funciones de pantalla_login y ejecutar_menu se repiten al cerrar sesión
-    while True:
-        #Se pide el login; si el usuario escribe 'salir' devuelve None
-        usuario = pantalla_login()
-        if usuario is None:
-            titulo_menu("Salida")
-            print("El sistema se ha cerrado correctamente.")
-            break
-        #Si el login fue correcto, se abre el menú según su rol
-        ejecutar_menu(usuario)
-
-#Si el archivo es menu.py ejecutar el main() directamente
-if __name__ == "__main__":
-    main()
