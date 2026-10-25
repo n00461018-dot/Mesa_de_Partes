@@ -5,7 +5,6 @@ import sys
 
 # Esto sube un nivel desde 'solicitudes' hasta la carpeta 'app' para ubicar 'auth'
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 #Importar funciones de login.py
 from auth.login import *
@@ -29,35 +28,52 @@ def opciones_rol(id_rol):
 
     if id_rol == 1:  # Administrador
         return [
+            "Registrar trámite",
             "Derivar trámites",
             "Registrar personal",
-            "Gestionar personal y áreas (cambiar área, crear usuarios)",
-            "Reportes (trámites por área y estado, historial de acciones)",
-            "Buscar trámites de todas las áreas (documento, expediente o estado)",
+            "Gestionar personal y áreas",
+            "Reportes (trámites por área y estado)",
+            "Buscar trámites de todas las áreas",
             "Cerrar sesión",
         ]
     elif id_rol == 2:  # Trabajador
         return [
+            "Registrar trámite",
             "Bandeja de mi área",
             "Buscar trámites",
+            "Derivar trámites",
             "Cerrar sesión",
         ]
     elif id_rol == 3:  # Ciudadano
         return [
             "Registrar trámite",
-            "Mis trámites y búsqueda (expediente o estado)",
+            "Mis trámites",
             "Cerrar sesión",
         ]
     return []
 
 
+# Diccionario con funciones de prueba para cada opción
+funciones_menu = {
+
+        "Registrar trámite": "Ingresar el nombre de la funcion",
+        "Derivar trámites": "Ingresar el nombre de la funcion",
+        "Registrar personal": "Ingresar el nombre de la funcion",
+        "Gestionar personal y áreas": "Ingresar el nombre de la funcion",
+        "Reportes (trámites por área y estado)": "Ingresar el nombre de la funcion",
+        "Buscar trámites de todas las áreas": "Ingresar el nombre de la funcion",
+        "Bandeja de mi área": "Ingresar el nombre de la funcion",
+        "Buscar trámites": "Ingresar el nombre de la funcion",
+        "Mis trámites": "Ingresar el nombre de la funcion"
+    }
+
+
 #MENÚ DINÁMICO SEGÚN EL ROL
 
-
+#Función ejecutar_menu con parámetro diccionario
 def ejecutar_menu(usuario):
 
-    #Se obtienen las opciones que corresponden al diccionario
-
+    #Se obtienen las opciones que corresponden al diccionario usuario
     opciones = opciones_rol(usuario["id_rol"])
     #Si el rol no existe, no hay opciones y se sale del menú
     if len(opciones) == 0:
@@ -65,7 +81,7 @@ def ejecutar_menu(usuario):
         input("\nPresione Enter para continuar.")
         return
 
-    #Se guardan el nombre del rol y el nombre completo para mostrarlos en el menú de usuario
+    #En caso tenga rol se guarda el nombre del rol y el nombre completo para mostrarlos en el menú de usuario
     rol_nombre = nombre_del_rol(usuario["id_rol"])
     nombre_completo = f"{usuario['nombre']} {usuario['apellido']}"
 
@@ -104,7 +120,15 @@ def ejecutar_menu(usuario):
             input("\nPresione Enter para continuar.")
             return
 
-        #Cualquier otra opción muestra una pantalla temporal hasta que se programe
-        titulo_menu(opciones[numero - 1])
-        print(f"[En desarrollo] Funcionalidad para: {opciones[numero - 1]}")
+        #Cualquier otra opción muestra una pantalla con la opción seleccionada
+        opcion_seleccionada = opciones[numero - 1]
+        titulo_menu(opcion_seleccionada)
+
+        funcion_menu = funciones_menu.get(opcion_seleccionada)
+
+        if funcion_menu:
+            print(f"[Pruebas] {funcion_menu}")
+        else:
+            print("No existe la opción seleccionada, vuelva a intentarlo.")        
+        
         input("\nPresione Enter para regresar al menú.")
