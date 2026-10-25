@@ -1,11 +1,5 @@
 from solicitudes.extra import titulo_menu
-
-
-
-#Importar funciones de login.py
-from auth.login import *
-
-
+from solicitudes.ciudadanos import menu_ciudadanos
 
 #ROLES Y OPCIONES DEL MENÚ
 
@@ -56,7 +50,7 @@ funciones_menu = {
         "Registrar trámite": "Ingresar el nombre de la funcion",
         "Derivar trámites": "Ingresar el nombre de la funcion",
         "Registrar personal": "Ingresar el nombre de la funcion",
-        "Gestionar ciudadanos":"Ingresar el nombre de la funcion",
+        "Gestionar ciudadanos":menu_ciudadanos,
         "Gestionar personal y áreas": "Ingresar el nombre de la funcion",
         "Reportes (trámites por área y estado)": "Ingresar el nombre de la funcion",
         "Buscar trámites de todas las áreas": "Ingresar el nombre de la funcion",
@@ -118,15 +112,13 @@ def ejecutar_menu(usuario):
             input("\nPresione Enter para continuar.")
             return
 
-        #Cualquier otra opción muestra una pantalla con la opción seleccionada
+        #Cualquier otra opción busca su función en el diccionario
         opcion_seleccionada = opciones[numero - 1]
-        titulo_menu(opcion_seleccionada)
-
         funcion_menu = funciones_menu.get(opcion_seleccionada)
 
-        if funcion_menu:
-            print(f"[Pruebas] {funcion_menu}")
+        if callable(funcion_menu):
+            funcion_menu()
         else:
-            print("No existe la opción seleccionada, vuelva a intentarlo.")        
-        
-        input("\nPresione Enter para regresar al menú.")
+            titulo_menu(opcion_seleccionada)
+            print(f"[Pruebas] {funcion_menu}")
+            input("\nPresione Enter para regresar al menú.")
