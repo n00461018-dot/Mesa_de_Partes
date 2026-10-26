@@ -1,5 +1,55 @@
 from solicitudes.extra import titulo_menu
 from solicitudes.ciudadanos import menu_ciudadanos
+from database.conexion_bd import conectar_bd
+from seguimiento.routes import menu_seguimiento, menu_cambio_estado
+
+# FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
+def ejecutar_seguimiento(usuario):
+
+    conexion = conectar_bd()
+
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    try:
+        menu_seguimiento(
+            conexion,
+            usuario["id_usuario"]
+        )
+
+    except Exception as error:
+        print("Error en el seguimiento:", error)
+
+    finally:
+        conexion.close()
+
+
+# FUNCIÓN PARA CAMBIAR EL ESTADO DE UN EXPEDIENTE
+def ejecutar_cambio_estado(usuario):
+
+    # Solo administrador y trabajador
+    if usuario["id_rol"] not in (1, 2):
+        print("No tiene permiso para cambiar estados.")
+        return
+
+    conexion = conectar_bd()
+
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    try:
+        menu_cambio_estado(
+            conexion,
+            usuario["id_usuario"]
+        )
+
+    except Exception as error:
+        print("Error al cambiar el estado:", error)
+
+    finally:
+        conexion.close()
 
 #ROLES Y OPCIONES DEL MENÚ
 
