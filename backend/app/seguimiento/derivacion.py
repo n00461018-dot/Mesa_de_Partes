@@ -13,6 +13,8 @@ class DerivacionRepository:
         - Motivo y observaciones
         - Responsable (id_usuario del empleado municipal)
         """
+        """ observación: La función
+        tiene que estar conectado a la base de datos para poder realizar la derivación."""
         if not self.db:
             return False, "No hay conexión a la base de datos."
 
