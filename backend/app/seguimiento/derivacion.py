@@ -1,48 +1,185 @@
 from datetime import datetime
-from mysql.connector import Error
+from .estados import TRANSICIONES
 
-class DerivacionRepository:
-    def __init__(self, conexion_db):
-        self.db = conexion_db
+def derivar_expediente_area(conexion, id_usuario):
+    """
+    Función principal para permitir que un empleado municipal o administrador 
+    derive un expediente de un área a otra. 
+    """
 
-    def derivar_expediente(self, id_expediente, id_area_origen, id_area_destino, motivo, observaciones, id_usuario):
-        """
-        Permite derivar un expediente de un área a otra, guardando:
-        - Área original (id_area_origen)
-        - Área destino (id_area_destino)
-        - Motivo y observaciones
-        - Responsable (id_usuario del empleado municipal)
-        """
-        """ observación: La función
-        tiene que estar conectado a la base de datos para poder realizar la derivación."""
-        if not self.db:
-            return False, "No hay conexión a la base de datos."
 
-        cursor = self.db.cursor()
-        try:
-            # 1. Registrar la derivación en la tabla 'derivacion'
-            query_derivacion = """
-                INSERT INTO derivacion (fecha_derivacion, motivo, observaciones, id_expediente, id_area_origen, id_area_destino, id_usuario)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
-            fecha_actual = datetime.now()
-            cursor.execute(query_derivacion, (
-                fecha_actual, motivo, observaciones, id_expediente, id_area_origen, id_area_destino, id_usuario
-            ))
+    
+    
+    # 1. Solicitar el número de expediente a derivar
+    numero = input("Ingrese el número de expediente a derivar: ").strip()
+    if not numero:
+        print("El número de expediente no puede estar vacío.")
+        return
 
-            # 2. Actualizar el área actual en la tabla principal 'expediente'
-            query_update_expediente = """
-                UPDATE expediente 
-                SET id_area = %s 
-                WHERE id_expediente = %s
-            """
-            cursor.execute(query_update_expediente, (id_area_destino, id_expediente))
+    # Creamos el cursor con dictionary=True para poder acceder a las columnas 
+    # por su nombre (ejemplo digamos  expediente['estado']).
+    cursor = conexion.cursor(dictionary=True)
 
-            self.db.commit()
-            return True, "Expediente derivado exitosamente entre áreas."
-            
-        except Error as e:
-            self.db.rollback()
-            return False, f"Error en la base de datos: {e}"
-        finally:
-            cursor.close()
+    try:
+        # 2. Iniciar transacción estricta (Misma lógica que en estados.py)
+        # Por qué: Garantiza que si algo falla a mitad del proceso, 
+        # ningún cambio parcial se guarde en la base de datos.
+        conexion.start_transaction()
+
+        # Buscar el expediente y bloquearlo temporalmente con FOR UPDATE
+     
+        # modificar el mismo expediente al mismo tiempo, este se espera hasta que termine.
+        cursor.execute("""
+            SELECT id_expediente, estado, id_area 
+            FROM expediente 
+            WHERE numero_expediente = %s
+            FOR UPDATE
+        """, (numero,))
+        expediente = cursor.fetchone()
+
+        if expediente is None:
+            conexion.rollback() # Revertimos si no existe
+            print("Expediente no encontrado.")
+            return
+
+        # 3. Comprobar el rol y el área del usuario autenticado
+        # Por qué: Seguridad basada en roles . Necesitamos saber 
+        # si el usuario logueado realmente trabaja en la municipalidad y qué área tiene asignada.
+        cursor.execute("""
+            SELECT u.id_area, r.nombre AS rol, u.nombre, u.apellido
+            FROM usuario u
+            INNER JOIN rol r ON u.id_rol = r.id_rol
+            WHERE u.id_usuario = %s
+        """, (id_usuario,))
+        usuario = cursor.fetchone()
+
+        if usuario is None:
+            conexion.rollback()
+            print("Usuario no encontrado.")
+            return
+
+        rol = usuario["rol"].lower().strip()
+        
+        # Validar permisos permitidos (Administrador, Empleado o Trabajador)
+        if rol not in ("administrador", "empleado", "trabajador"):
+            conexion.rollback()
+            print("No tiene permiso para derivar expedientes.")
+            return
+
+        # Si el rol no es administrador, obligatoriamente debe pertenecer al área actual del expediente
+        # Por qué: Un trabajador de Obras no puede derivar un expediente que le pertenece a Mesa de Partes.
+        if rol != "administrador" and usuario["id_area"] != expediente["id_area"]:
+            conexion.rollback()
+            print("No pertenece al área responsable actual de este expediente.")
+            return
+
+        id_area_origen = expediente["id_area"]
+
+        # Consultar el nombre del área de origen para mostrarlo en pantalla de forma amigable
+        cursor.execute("SELECT nombre FROM area WHERE id_area = %s", (id_area_origen,))
+        area_origen_info = cursor.fetchone()
+        
+        print(f"\n===== DERIVACIÓN DE EXPEDIENTE =====")
+        print(f"Expediente N°: {numero}")
+        print(f"Área Origen actual: {area_origen_info['nombre'] if area_origen_info else 'Desconocida'}")
+
+        # 4. Listar las áreas disponibles para el destino (excluyendo la actual)
+        # creo que no tiene sentido derivar un expediente al mismo área donde ya está.
+        cursor.execute("SELECT id_area, nombre FROM area WHERE id_area != %s", (id_area_origen,))
+        areas_destino = cursor.fetchall()
+
+        if not areas_destino:
+            conexion.rollback()
+            print("No hay otras áreas disponibles para derivar.")
+            return
+
+        print("\n===== ÁREAS DE DESTINO DISPONIBLES =====")
+        for idx, area in enumerate(areas_destino, 1):
+            print(f"{idx}. {area['nombre']}")
+        print("0. Cancelar")
+
+        opcion_area = input("\nSeleccione el número del área de destino: ").strip()
+        if opcion_area == "0" or not opcion_area.isdigit():
+            conexion.rollback()
+            print("Operación cancelada.")
+            return
+
+        indice = int(opcion_area) - 1
+        if not (0 <= indice < len(areas_destino)):
+            conexion.rollback()
+            print("Opción de área no válida.")
+            return
+
+        id_area_destino = areas_destino[indice]["id_area"]
+        nombre_area_destino = areas_destino[indice]["nombre"]
+
+        # 5. Solicitar motivo y observaciones obligatorias puede ser opcionales
+        #  Toda transferencia en una municipalidad exige justificación legal o administrativa.
+        motivo = input("Ingrese el motivo de la derivación: ").strip()
+        if not motivo:
+            conexion.rollback()
+            print("El motivo es obligatorio.")
+            return
+
+        observaciones = input("Ingrese observaciones adicionales (opcional): ").strip()
+
+        # Confirmación final por seguridad del usuario antes de ejecutar la BD
+        confirmar = input(f"\n¿Confirmar derivación al área '{nombre_area_destino}'? (S/N): ").strip().upper()
+        if confirmar != "S":
+            conexion.rollback()
+            print("Operación cancelada.")
+            return
+
+        # 6. Actualizar el expediente: cambiar su área actual y actualizar su estado a 'Derivado'
+        # Mantiene la tabla principal expediente sincronizada con su ubicación actual.
+        nuevo_estado = "Derivado"
+        cursor.execute("""
+            UPDATE expediente 
+            SET id_area = %s, estado = %s 
+            WHERE id_expediente = %s
+        """, (id_area_destino, nuevo_estado, expediente["id_expediente"]))
+
+        # 7. Registrar el movimiento en la tabla derivacion
+        # Por qué: Guarda el historial detallado de origen, destino, motivo y responsable 
+        # tal como lo exige el requerimiento del proyecto.
+        cursor.execute("""
+            INSERT INTO derivacion (fecha_derivacion, motivo, observaciones, id_expediente, id_area_origen, id_area_destino, id_usuario)
+            VALUES (NOW(), %s, %s, %s, %s, %s, %s)
+        """, (
+            motivo, 
+            observaciones if observaciones else None, 
+            expediente["id_expediente"], 
+            id_area_origen, 
+            id_area_destino, 
+            id_usuario
+        ))
+
+        # 8. Registrar también en la tabla 'seguimiento'
+    
+        # muestre este movimiento cronológicamente en el historial del ciudadano o del trabajador.
+        detalle_seguimiento = f"Derivado a {nombre_area_destino}. Motivo: {motivo}"
+        if observaciones:
+            detalle_seguimiento += f" - Obs: {observaciones}"
+
+        cursor.execute("""
+            INSERT INTO seguimiento (fecha, estado, observacion, id_usuario, id_expediente)
+            VALUES (NOW(), %s, %s, %s, %s)
+        """, (
+            nuevo_estado,
+            detalle_seguimiento[:200], # Limitado para no exceder el varchar de la BD
+            id_usuario,
+            expediente["id_expediente"]
+        ))
+
+        # 9. Confirmar todos los cambios juntos (Commit)
+        
+        conexion.commit()
+        print(f"\n[OK] ¡Expediente derivado exitosamente a la unidad de {nombre_area_destino}!")
+
+    except Exception as e:
+        # Si ocurre cualquier error inesperado, se deshace todo (Rollback)
+        conexion.rollback()
+        print(f"\n[!] Error crítico al procesar la derivación: {e}")
+    finally:
+        # Siempre cerramos el cursor para liberar memoria del servidor de base de datos
+        cursor.close()

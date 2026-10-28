@@ -1,16 +1,75 @@
-from extra import titulo_menu
+from solicitudes.extra import titulo_menu
+from solicitudes.ciudadanos import menu_ciudadanos
+from database.conexion_bd import conectar_bd
+from seguimiento.routes import menu_seguimiento, menu_cambio_estado
+from seguimiento.derivacion import derivar_expediente_area
+# FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
+def ejecutar_seguimiento(usuario):
 
-import os
-import sys
+    conexion = conectar_bd()
 
-# Esto sube un nivel desde 'solicitudes' hasta la carpeta 'app' para ubicar 'auth'
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    try:
+        menu_seguimiento(
+            conexion,
+            usuario["id_usuario"]
+        )
 
-#Importar funciones de login.py
-from auth.login import *
+    except Exception as error:
+        print("Error en el seguimiento:", error)
+
+    finally:
+        conexion.close()
 
 
+# FUNCIÓN PARA CAMBIAR EL ESTADO DE UN EXPEDIENTE
+def ejecutar_cambio_estado(usuario):
+
+# FUNCIÓN PARA DERIVAR EXPEDIENTES ENTRE ÁREAS
+ def ejecutar_derivacion(usuario):
+    conexion = conectar_bd()
+
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    try:
+        derivar_expediente_area(
+            conexion,
+            usuario["id_usuario"]
+        )
+
+    except Exception as error:
+        print("Error en la derivación:", error)
+
+    finally:
+        conexion.close()
+
+    # Solo administrador y trabajador
+    if usuario["id_rol"] not in (1, 2):
+        print("No tiene permiso para cambiar estados.")
+        return
+
+    conexion = conectar_bd()
+
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    try:
+        menu_cambio_estado(
+            conexion,
+            usuario["id_usuario"]
+        )
+
+    except Exception as error:
+        print("Error al cambiar el estado:", error)
+
+    finally:
+        conexion.close()
 
 #ROLES Y OPCIONES DEL MENÚ
 
@@ -29,35 +88,54 @@ def opciones_rol(id_rol):
 
     if id_rol == 1:  # Administrador
         return [
+            "Registrar trámite",
             "Derivar trámites",
             "Registrar personal",
-            "Gestionar personal y áreas (cambiar área, crear usuarios)",
-            "Reportes (trámites por área y estado, historial de acciones)",
-            "Buscar trámites de todas las áreas (documento, expediente o estado)",
+            "Gestionar ciudadanos",
+            "Gestionar personal y áreas",
+            "Reportes (trámites por área y estado)",
+            "Buscar trámites de todas las áreas",
             "Cerrar sesión",
         ]
     elif id_rol == 2:  # Trabajador
         return [
+            "Registrar trámite",
             "Bandeja de mi área",
             "Buscar trámites",
+            "Derivar trámites",
             "Cerrar sesión",
         ]
     elif id_rol == 3:  # Ciudadano
         return [
             "Registrar trámite",
-            "Mis trámites y búsqueda (expediente o estado)",
+            "Mis trámites",
             "Cerrar sesión",
         ]
     return []
 
 
+# Diccionario con funciones de prueba para cada opción
+funciones_menu = {
+
+        "Registrar trámite": "Ingresar el nombre de la funcion",
+        "Derivar trámites": derivar_expediente_area,
+        "Registrar personal": "Ingresar el nombre de la funcion",
+        "Gestionar ciudadanos":menu_ciudadanos,
+        "Gestionar personal y áreas": "Ingresar el nombre de la funcion",
+        "Reportes (trámites por área y estado)": "Ingresar el nombre de la funcion",
+        "Buscar trámites de todas las áreas": "Ingresar el nombre de la funcion",
+        "Bandeja de mi área": "Ingresar el nombre de la funcion",
+        "Buscar trámites": "Ingresar el nombre de la funcion",
+        "Mis trámites": "Ingresar el nombre de la funcion"
+    }
+
+
 #MENÚ DINÁMICO SEGÚN EL ROL
 
-
+#Función ejecutar_menu con parámetro diccionario
 def ejecutar_menu(usuario):
 
-    #Se obtienen las opciones que corresponden al diccionario
-
+    #Se obtienen las opciones que corresponden al diccionario usuario
     opciones = opciones_rol(usuario["id_rol"])
     #Si el rol no existe, no hay opciones y se sale del menú
     if len(opciones) == 0:
@@ -65,7 +143,7 @@ def ejecutar_menu(usuario):
         input("\nPresione Enter para continuar.")
         return
 
-    #Se guardan el nombre del rol y el nombre completo para mostrarlos en el menú de usuario
+    #En caso tenga rol se guarda el nombre del rol y el nombre completo para mostrarlos en el menú de usuario
     rol_nombre = nombre_del_rol(usuario["id_rol"])
     nombre_completo = f"{usuario['nombre']} {usuario['apellido']}"
 
@@ -104,27 +182,13 @@ def ejecutar_menu(usuario):
             input("\nPresione Enter para continuar.")
             return
 
-        #Cualquier otra opción muestra una pantalla temporal hasta que se programe
-        titulo_menu(opciones[numero - 1])
-        print(f"[En desarrollo] Funcionalidad para: {opciones[numero - 1]}")
-        input("\nPresione Enter para regresar al menú.")
+        #Cualquier otra opción busca su función en el diccionario
+        opcion_seleccionada = opciones[numero - 1]
+        funcion_menu = funciones_menu.get(opcion_seleccionada)
 
-
-
-#FUNCION PRINCIPAL PARA EL MENÚ
-
-def main():
-    #Las funciones de pantalla_login y ejecutar_menu se repiten al cerrar sesión
-    while True:
-        #Se pide el login; si el usuario escribe 'salir' devuelve None
-        usuario = pantalla_login()
-        if usuario is None:
-            titulo_menu("Salida")
-            print("El sistema se ha cerrado correctamente.")
-            break
-        #Si el login fue correcto, se abre el menú según su rol
-        ejecutar_menu(usuario)
-
-#Si el archivo es menu.py ejecutar el main() directamente
-if __name__ == "__main__":
-    main()
+        if callable(funcion_menu):
+            funcion_menu()
+        else:
+            titulo_menu(opcion_seleccionada)
+            print(f"[Pruebas] {funcion_menu}")
+            input("\nPresione Enter para regresar al menú.")

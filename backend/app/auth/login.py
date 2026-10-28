@@ -1,20 +1,6 @@
-import mysql.connector
 from mysql.connector import Error
 from solicitudes.extra import titulo_menu
-# CONEXIÓN A LA BASE DE DATOS
-def conectar_bd():
-    # Se intenta conectar a MySQL; si falla se avisa y se devuelve None
-    try:
-        return mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="admin",
-            database="mesa_de_partes",
-        )
-    except Error as e:
-        print(f"\n[!] Error al conectar con la base de datos MySQL: {e}")
-        return None
-
+from database.conexion_bd import conectar_bd
 
 # Función básica para validar el formato antes de consultar la BD
 def validar_formato_entrada(identificador, clave):
