@@ -118,7 +118,7 @@ def opciones_rol(id_rol):
 funciones_menu = {
 
         "Registrar trámite": "Ingresar el nombre de la funcion",
-        "Derivar trámites": derivar_expediente_area,
+        "Derivar trámites": lambda conexion, usuario: derivar_expediente_area(conexion, usuario['id_usuario']),
         "Registrar personal": "Ingresar el nombre de la funcion",
         "Gestionar ciudadanos":menu_ciudadanos,
         "Gestionar personal y áreas": "Ingresar el nombre de la funcion",
