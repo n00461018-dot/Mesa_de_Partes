@@ -118,8 +118,8 @@ def opciones_rol(id_rol):
 funciones_menu = {
 
         "Registrar trámite": "Ingresar el nombre de la funcion",
-        "Derivar trámites": derivar_expediente_area,
-        "Registrar personal": "Ingresar el nombre de la funcion",
+         "Derivar trámites": lambda conexion, usuario: derivar_expediente_area(conexion, usuario['id_usuario']),        
+         "Registrar personal": "Ingresar el nombre de la funcion",
         "Gestionar ciudadanos":menu_ciudadanos,
         "Gestionar personal y áreas": "Ingresar el nombre de la funcion",
         "Reportes (trámites por área y estado)": "Ingresar el nombre de la funcion",
@@ -135,6 +135,14 @@ funciones_menu = {
 #Función ejecutar_menu con parámetro diccionario
 def ejecutar_menu(usuario):
 
+    conexion = conectar_bd()  # Asegúrate de tener la conexión aquí
+    
+    # El diccionario va DENTRO de la función para capturar 'conexion' y 'usuario'
+    funciones_menu = {
+        "Registrar trámite": lambda: print("Función en desarrollo"),
+        "Derivar trámites": lambda: derivar_expediente_area(conexion, usuario['id_usuario']),
+        # ... las demás opciones ...
+    }
     #Se obtienen las opciones que corresponden al diccionario usuario
     opciones = opciones_rol(usuario["id_rol"])
     #Si el rol no existe, no hay opciones y se sale del menú

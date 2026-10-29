@@ -9,8 +9,8 @@ def conectar_bd():
         return mysql.connector.connect(
             host="localhost",
             port=3306,
-            user="mdpsjl",          
-            password="123456",     
+            user="root",          
+            password="12345",     
             database="mesa_de_partes",
         )
     except Error as e:
