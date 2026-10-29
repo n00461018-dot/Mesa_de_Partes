@@ -92,6 +92,7 @@ def opciones_rol(id_rol):
         return [
             "Registrar trámite",
             "Derivar trámites",
+            "Seguimiento de expediente",
             "Registrar personal",
             "Gestionar ciudadanos",
             "Gestionar personal y áreas",
@@ -104,12 +105,14 @@ def opciones_rol(id_rol):
             "Registrar trámite",
             "Bandeja de mi área",
             "Buscar trámites",
+            "Seguimiento de expediente",
             "Derivar trámites",
             "Cerrar sesión",
         ]
     elif id_rol == 3:  # Ciudadano
         return [
             "Registrar trámite",
+            "Seguimiento de expediente",
             "Mis trámites",
             "Cerrar sesión",
         ]
