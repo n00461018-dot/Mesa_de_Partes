@@ -28,27 +28,7 @@ def ejecutar_seguimiento(usuario):
 # FUNCIÓN PARA CAMBIAR EL ESTADO DE UN EXPEDIENTE
 def ejecutar_cambio_estado(usuario):
 
-# FUNCIÓN PARA DERIVAR EXPEDIENTES ENTRE ÁREAS
- def ejecutar_derivacion(usuario):
-    conexion = conectar_bd()
-
-    if conexion is None:
-        print("No se pudo conectar a la base de datos.")
-        return
-
-    try:
-        derivar_expediente_area(
-            conexion,
-            usuario["id_usuario"]
-        )
-
-    except Exception as error:
-        print("Error en la derivación:", error)
-
-    finally:
-        conexion.close()
-
-    # Solo administrador y trabajador
+    # Solo administrador y trabajador pueden cambiar estados
     if usuario["id_rol"] not in (1, 2):
         print("No tiene permiso para cambiar estados.")
         return
@@ -67,6 +47,28 @@ def ejecutar_cambio_estado(usuario):
 
     except Exception as error:
         print("Error al cambiar el estado:", error)
+
+    finally:
+        conexion.close()
+
+
+# FUNCIÓN PARA DERIVAR EXPEDIENTES ENTRE ÁREAS
+def ejecutar_derivacion(usuario):
+
+    conexion = conectar_bd()
+
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    try:
+        derivar_expediente_area(
+            conexion,
+            usuario["id_usuario"]
+        )
+
+    except Exception as error:
+        print("Error en la derivación:", error)
 
     finally:
         conexion.close()
