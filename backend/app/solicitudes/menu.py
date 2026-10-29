@@ -2,7 +2,7 @@ from solicitudes.extra import titulo_menu
 from solicitudes.ciudadanos import menu_ciudadanos
 from database.conexion_bd import conectar_bd
 from seguimiento.routes import menu_seguimiento, menu_cambio_estado
-from seguimiento.derivacion import derivar_expediente_area
+from seguimiento.derivacion import menu_derivar
 # FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
 def ejecutar_seguimiento(usuario):
 
@@ -27,26 +27,6 @@ def ejecutar_seguimiento(usuario):
 
 # FUNCIÓN PARA CAMBIAR EL ESTADO DE UN EXPEDIENTE
 def ejecutar_cambio_estado(usuario):
-
-# FUNCIÓN PARA DERIVAR EXPEDIENTES ENTRE ÁREAS
- def ejecutar_derivacion(usuario):
-    conexion = conectar_bd()
-
-    if conexion is None:
-        print("No se pudo conectar a la base de datos.")
-        return
-
-    try:
-        derivar_expediente_area(
-            conexion,
-            usuario["id_usuario"]
-        )
-
-    except Exception as error:
-        print("Error en la derivación:", error)
-
-    finally:
-        conexion.close()
 
     # Solo administrador y trabajador
     if usuario["id_rol"] not in (1, 2):
@@ -118,7 +98,7 @@ def opciones_rol(id_rol):
 funciones_menu = {
 
         "Registrar trámite": "Ingresar el nombre de la funcion",
-        "Derivar trámites": lambda conexion, usuario: derivar_expediente_area(conexion, usuario['id_usuario']),
+        "Derivar trámites": menu_derivar,
         "Registrar personal": "Ingresar el nombre de la funcion",
         "Gestionar ciudadanos":menu_ciudadanos,
         "Gestionar personal y áreas": "Ingresar el nombre de la funcion",
@@ -187,8 +167,7 @@ def ejecutar_menu(usuario):
         funcion_menu = funciones_menu.get(opcion_seleccionada)
 
         if callable(funcion_menu):
-            funcion_menu()
-        else:
-            titulo_menu(opcion_seleccionada)
-            print(f"[Pruebas] {funcion_menu}")
-            input("\nPresione Enter para regresar al menú.")
+            if opcion_seleccionada == "Derivar trámites":
+                funcion_menu(usuario)
+            else:
+                funcion_menu()
