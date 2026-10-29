@@ -1,5 +1,17 @@
 from datetime import datetime
 from .estados import TRANSICIONES
+from database.conexion_bd import conectar_bd
+
+def menu_derivar(usuario):
+    conexion = conectar_bd()
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    try:
+        derivar_expediente_area(conexion, usuario["id_usuario"])
+    finally:
+        conexion.close()
 
 def derivar_expediente_area(conexion, id_usuario):
     """
@@ -7,9 +19,6 @@ def derivar_expediente_area(conexion, id_usuario):
     derive un expediente de un área a otra. 
     """
 
-
-    
-    
     #  Solicitar el número de expediente a derivar
     numero = input("Ingrese el número de expediente a derivar: ").strip()
     if not numero:
@@ -147,7 +156,7 @@ def derivar_expediente_area(conexion, id_usuario):
             VALUES (NOW(), %s, %s, %s, %s, %s, %s)
         """, (
             motivo, 
-            observaciones if observaciones else None, 
+            observaciones, 
             expediente["id_expediente"], 
             id_area_origen, 
             id_area_destino, 
