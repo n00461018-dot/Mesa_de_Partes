@@ -131,7 +131,8 @@ funciones_menu = {
         "Buscar trámites de todas las áreas": "Ingresar el nombre de la funcion",
         "Bandeja de mi área": "Ingresar el nombre de la funcion",
         "Buscar trámites": "Ingresar el nombre de la funcion",
-        "Mis trámites": "Ingresar el nombre de la funcion"
+        "Mis trámites": "Ingresar el nombre de la funcion",
+        "Seguimiento de expediente": ejecutar_seguimiento,
     }
 
 
@@ -192,7 +193,10 @@ def ejecutar_menu(usuario):
         funcion_menu = funciones_menu.get(opcion_seleccionada)
 
         if callable(funcion_menu):
-            funcion_menu()
+            if opcion_seleccionada == "Seguimiento de expediente":
+                funcion_menu(usuario)
+            else:
+                funcion_menu()
         else:
             titulo_menu(opcion_seleccionada)
             print(f"[Pruebas] {funcion_menu}")
