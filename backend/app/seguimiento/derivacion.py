@@ -10,7 +10,7 @@ def derivar_expediente_area(conexion, id_usuario):
 
     
     
-    # 1. Solicitar el número de expediente a derivar
+    #  Solicitar el número de expediente a derivar
     numero = input("Ingrese el número de expediente a derivar: ").strip()
     if not numero:
         print("El número de expediente no puede estar vacío.")
@@ -21,7 +21,7 @@ def derivar_expediente_area(conexion, id_usuario):
     cursor = conexion.cursor(dictionary=True)
 
     try:
-        # 2. Iniciar transacción estricta (Misma lógica que en estados.py)
+        #  Iniciar transacción estricta (Misma lógica que en estados.py)
         # Por qué: Garantiza que si algo falla a mitad del proceso, 
         # ningún cambio parcial se guarde en la base de datos.
         conexion.start_transaction()
@@ -42,7 +42,7 @@ def derivar_expediente_area(conexion, id_usuario):
             print("Expediente no encontrado.")
             return
 
-        # 3. Comprobar el rol y el área del usuario autenticado
+        #  Comprobar el rol y el área del usuario autenticado
         # Por qué: Seguridad basada en roles . Necesitamos saber 
         # si el usuario logueado realmente trabaja en la municipalidad y qué área tiene asignada.
         cursor.execute("""
@@ -83,7 +83,7 @@ def derivar_expediente_area(conexion, id_usuario):
         print(f"Expediente N°: {numero}")
         print(f"Área Origen actual: {area_origen_info['nombre'] if area_origen_info else 'Desconocida'}")
 
-        # 4. Listar las áreas disponibles para el destino (excluyendo la actual)
+        #  Listar las áreas disponibles para el destino (excluyendo la actual)
         # creo que no tiene sentido derivar un expediente al mismo área donde ya está.
         cursor.execute("SELECT id_area, nombre FROM area WHERE id_area != %s", (id_area_origen,))
         areas_destino = cursor.fetchall()
@@ -113,7 +113,7 @@ def derivar_expediente_area(conexion, id_usuario):
         id_area_destino = areas_destino[indice]["id_area"]
         nombre_area_destino = areas_destino[indice]["nombre"]
 
-        # 5. Solicitar motivo y observaciones obligatorias puede ser opcionales
+        # Solicitar motivo y observaciones obligatorias puede ser opcionales
         #  Toda transferencia en una municipalidad exige justificación legal o administrativa.
         motivo = input("Ingrese el motivo de la derivación: ").strip()
         if not motivo:
@@ -130,7 +130,7 @@ def derivar_expediente_area(conexion, id_usuario):
             print("Operación cancelada.")
             return
 
-        # 6. Actualizar el expediente: cambiar su área actual y actualizar su estado a 'Derivado'
+        #  Actualizar el expediente: cambiar su área actual y actualizar su estado a 'Derivado'
         # Mantiene la tabla principal expediente sincronizada con su ubicación actual.
         nuevo_estado = "Derivado"
         cursor.execute("""
@@ -139,7 +139,7 @@ def derivar_expediente_area(conexion, id_usuario):
             WHERE id_expediente = %s
         """, (id_area_destino, nuevo_estado, expediente["id_expediente"]))
 
-        # 7. Registrar el movimiento en la tabla derivacion
+        #  Registrar el movimiento en la tabla derivacion
         # Por qué: Guarda el historial detallado de origen, destino, motivo y responsable 
         # tal como lo exige el requerimiento del proyecto.
         cursor.execute("""
@@ -154,7 +154,7 @@ def derivar_expediente_area(conexion, id_usuario):
             id_usuario
         ))
 
-        # 8. Registrar también en la tabla 'seguimiento'
+        #  Registrar también en la tabla 'seguimiento'
     
         # muestre este movimiento cronológicamente en el historial del ciudadano o del trabajador.
         detalle_seguimiento = f"Derivado a {nombre_area_destino}. Motivo: {motivo}"
@@ -171,7 +171,7 @@ def derivar_expediente_area(conexion, id_usuario):
             expediente["id_expediente"]
         ))
 
-        # 9. Confirmar todos los cambios juntos (Commit)
+        #  Confirmar todos los cambios juntos (Commit)
         
         conexion.commit()
         print(f"\n[OK] ¡Expediente derivado exitosamente a la unidad de {nombre_area_destino}!")
