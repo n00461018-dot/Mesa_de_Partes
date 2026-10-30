@@ -60,6 +60,15 @@ def validar_nombre_archivo(adjunto, registrados):
         return f"Formato inválido. Use: {permitidas}."
 
 
+    #Se extrae el primer elemento obtenido del rsplit con "." desde la derecha separando el primer punto encontrado
+    #Ej: De "dni.pdf" extraerá solo "dni"
+    archivo = adjunto.rsplit(".", 1)[0]
+
+    #Si no existe un nombre de archivo la función devuelve un mensaje
+    if not archivo.strip():
+        return "El nombre del archivo no puede estar vacío."
+
+    
     #Se recorre la lista de adjuntos registrados y se compara con el actual
     for adjunto_registrado in registrados:
         # si ya existe previamente, mostrará un mensaje
