@@ -92,6 +92,7 @@ def opciones_rol(id_rol):
         return [
             "Registrar trámite",
             "Derivar trámites",
+            "Cambio de estado",
             "Seguimiento de expediente",
             "Registrar personal",
             "Gestionar ciudadanos",
@@ -106,6 +107,7 @@ def opciones_rol(id_rol):
             "Bandeja de mi área",
             "Buscar trámites",
             "Seguimiento de expediente",
+            "Cambio de estado",
             "Derivar trámites",
             "Cerrar sesión",
         ]
@@ -194,6 +196,8 @@ def ejecutar_menu(usuario):
 
         if callable(funcion_menu):
             if opcion_seleccionada == "Seguimiento de expediente":
+                funcion_menu(usuario)
+            elif opcion_seleccionada == "Cambio de estado":
                 funcion_menu(usuario)
             else:
                 funcion_menu()
