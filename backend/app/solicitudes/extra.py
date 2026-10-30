@@ -30,3 +30,11 @@ def validar_dni(dni):
     return None
 
 
+def validar_asunto(asunto):
+    #Si el asunto no está entre los valores de minimo y maximo la función devolverá un mensaje
+    if len(asunto) < ASUNTO_MIN:
+        return f"El asunto debe tener al menos {ASUNTO_MIN} caracteres."
+    if len(asunto) > ASUNTO_MAX:
+        return f"El asunto no puede superar {ASUNTO_MAX} caracteres."
+    #Si el asunto pasa la validación devuelve None
+    return None
