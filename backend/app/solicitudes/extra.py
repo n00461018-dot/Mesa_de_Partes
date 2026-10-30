@@ -38,3 +38,34 @@ def validar_asunto(asunto):
         return f"El asunto no puede superar {ASUNTO_MAX} caracteres."
     #Si el asunto pasa la validación devuelve None
     return None
+
+
+def validar_nombre_archivo(adjunto, registrados):
+
+    #Si el largo del adjunto sobrepasa el maximo de bd mostrará un mensaje
+    if len(adjunto) > NOMBRE_ARCHIVO_MAX:
+        return f"El nombre no puede superar {NOMBRE_ARCHIVO_MAX} caracteres."
+
+
+    #Si se inserta / o \ mostrará un mensaje
+    if "/" in adjunto or "\\" in adjunto:
+        return "Escriba solo el nombre del archivo, sin carpetas."
+
+    
+    nombre_lower = adjunto.lower()
+
+    #Si el adjunto no termina con la extensión permitida se mostrará la lista de extensiones permitidas
+    if not nombre_lower.endswith(EXTENSIONES_PERMITIDAS):
+        permitidas = ", ".join(EXTENSIONES_PERMITIDAS)
+        return f"Formato inválido. Use: {permitidas}."
+
+
+    #Se recorre la lista de adjuntos registrados y se compara con el actual
+    for adjunto_registrado in registrados:
+        # si ya existe previamente, mostrará un mensaje
+        if adjunto_registrado.lower() == adjunto.lower():
+            return "Ese archivo ya fue adjuntado."
+
+
+    #Si el adjunto pasa las validaciones devolverá None
+    return None
