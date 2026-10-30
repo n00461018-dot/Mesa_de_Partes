@@ -135,6 +135,8 @@ funciones_menu = {
         "Buscar trámites": "Ingresar el nombre de la funcion",
         "Mis trámites": "Ingresar el nombre de la funcion",
         "Seguimiento de expediente": ejecutar_seguimiento,
+        "Cambio de estado": ejecutar_cambio_estado,
+        "Cambio de estado": lambda: ejecutar_cambio_estado,
     }
 
 
