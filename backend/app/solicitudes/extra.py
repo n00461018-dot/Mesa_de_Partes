@@ -6,7 +6,7 @@ ROL_ADMIN = 1
 ROL_TRABAJADOR = 2
 ROL_CIUDADANO = 3
 NOMBRE_ARCHIVO_MAX = 150
-EXTENSIONES_PERMITIDAS = ("pdf", "jpg", "docx")
+EXTENSIONES_PERMITIDAS = (".pdf", ".jpg", ".docx")
 
 # Función para crear el título de cada menú
 def titulo_menu(titulo):
