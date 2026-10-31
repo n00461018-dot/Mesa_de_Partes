@@ -34,12 +34,27 @@ def registrar_documento(usuario):
 
         cursor.execute(sql_expediente, (numero_expediente, fecha_actual, asunto, id_ciudadano, id_tipo))
 
+        #Recuperamos el ID que MSQL acaba de generar para este expediente
         id_expediente = cursor.lastrowid
 
+        nombre_archivo = input("Nombre del archivo adjunto (ej. dni.pdf): ")
+        
+        sql_doc = "INSERT INTO documento (nombre_archivo, tipo_documento, fecha_subida, id_expediente) VALUES (%s, 'PDF', %s, %s)"
+        cursor.execute(sql_doc, (nombre_archivo, fecha_actual, id_expediente))
+
+        sql_seg = "INSERT INTO seguimiento (fecha, estado, observacion, id_usuario, id_expediente) VALUES (%s, 'Registrado', 'Trámite registrado por el ciudadano', %s, %s)"
+        cursor.execute(sql_seg, (fecha_actual, usuario["id_usuario"], id_expediente))
+
+        # Confirmamos que los tres registros se guarden permanentemente
+        conexion.commit() #Guarda los cambios
+        print(f"\n¡Éxito! Su trámite fue registrado con el número: {numero_expediente}")
 
     except Exception as e:
-        print("algo")
+        # Si algo falla, deshacemos todos los cambios para no dejar datos incompletos
+        conexion.rollback() #Revierte si hay error
+        print(f"\nError al registrar el documento: {e}")
 
+    # Aquí es donde se usa 'cursor' para cerrarlo de forma segura
     finally:
         if cursor is not None:
             cursor.close()
