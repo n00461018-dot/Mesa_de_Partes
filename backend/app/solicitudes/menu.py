@@ -3,6 +3,7 @@ from solicitudes.ciudadanos import menu_ciudadanos
 from database.conexion_bd import conectar_bd
 from seguimiento.routes import menu_seguimiento, menu_cambio_estado
 from seguimiento.derivacion import menu_derivar
+from solicitudes.registrardocumento import registrar_documento
 # FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
 def ejecutar_seguimiento(usuario):
 
@@ -50,7 +51,7 @@ def ejecutar_cambio_estado(usuario):
 
     finally:
         conexion.close()
-        
+
 #ROLES Y OPCIONES DEL MENÚ
 
 def nombre_del_rol(id_rol):
@@ -102,7 +103,7 @@ def opciones_rol(id_rol):
 # Diccionario con funciones de prueba para cada opción
 funciones_menu = {
 
-        "Registrar trámite": "Ingresar el nombre de la funcion",
+        "Registrar trámite": registrar_documento,
         "Derivar trámites": menu_derivar,
         "Registrar personal": "Ingresar el nombre de la funcion",
         "Gestionar ciudadanos":menu_ciudadanos,
