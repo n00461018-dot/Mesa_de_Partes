@@ -78,3 +78,8 @@ def validar_nombre_archivo(adjunto, registrados):
 
     #Si el adjunto pasa las validaciones devolverá None
     return None
+
+def extraer_tipo_doc(archivo):
+    #Se divide el string con el primer punto encontrado desde la derecha
+    #La funcion devuelve la extensión del archivo solicitado
+    return archivo.rsplit(".", 1)[1].upper()
