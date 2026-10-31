@@ -28,7 +28,7 @@ def ejecutar_seguimiento(usuario):
 # FUNCIÓN PARA CAMBIAR EL ESTADO DE UN EXPEDIENTE
 def ejecutar_cambio_estado(usuario):
 
-    # Solo administrador y trabajador
+    # Solo administrador y trabajador pueden cambiar estados
     if usuario["id_rol"] not in (1, 2):
         print("No tiene permiso para cambiar estados.")
         return
@@ -47,6 +47,28 @@ def ejecutar_cambio_estado(usuario):
 
     except Exception as error:
         print("Error al cambiar el estado:", error)
+
+    finally:
+        conexion.close()
+
+
+# FUNCIÓN PARA DERIVAR EXPEDIENTES ENTRE ÁREAS
+def ejecutar_derivacion(usuario):
+
+    conexion = conectar_bd()
+
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    try:
+        derivar_expediente_area(
+            conexion,
+            usuario["id_usuario"]
+        )
+
+    except Exception as error:
+        print("Error en la derivación:", error)
 
     finally:
         conexion.close()
@@ -70,6 +92,8 @@ def opciones_rol(id_rol):
         return [
             "Registrar trámite",
             "Derivar trámites",
+            "Cambio de estado",
+            "Seguimiento de expediente",
             "Registrar personal",
             "Gestionar ciudadanos",
             "Gestionar personal y áreas",
@@ -82,12 +106,15 @@ def opciones_rol(id_rol):
             "Registrar trámite",
             "Bandeja de mi área",
             "Buscar trámites",
+            "Seguimiento de expediente",
+            "Cambio de estado",
             "Derivar trámites",
             "Cerrar sesión",
         ]
     elif id_rol == 3:  # Ciudadano
         return [
             "Registrar trámite",
+            "Seguimiento de expediente",
             "Mis trámites",
             "Cerrar sesión",
         ]
@@ -106,7 +133,10 @@ funciones_menu = {
         "Buscar trámites de todas las áreas": "Ingresar el nombre de la funcion",
         "Bandeja de mi área": "Ingresar el nombre de la funcion",
         "Buscar trámites": "Ingresar el nombre de la funcion",
-        "Mis trámites": "Ingresar el nombre de la funcion"
+        "Mis trámites": "Ingresar el nombre de la funcion",
+        "Seguimiento de expediente": ejecutar_seguimiento,
+        "Cambio de estado": ejecutar_cambio_estado,
+        "Cambio de estado": lambda: ejecutar_cambio_estado,
     }
 
 
@@ -167,6 +197,16 @@ def ejecutar_menu(usuario):
         funcion_menu = funciones_menu.get(opcion_seleccionada)
 
         if callable(funcion_menu):
+            if opcion_seleccionada == "Seguimiento de expediente":
+                funcion_menu(usuario)
+            elif opcion_seleccionada == "Cambio de estado":
+                funcion_menu(usuario)
+            else:
+                funcion_menu()
+        else:
+            titulo_menu(opcion_seleccionada)
+            print(f"[Pruebas] {funcion_menu}")
+            input("\nPresione Enter para regresar al menú.")
             if opcion_seleccionada == "Derivar trámites":
                 funcion_menu(usuario)
             else:
