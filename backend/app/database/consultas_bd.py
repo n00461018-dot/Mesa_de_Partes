@@ -16,3 +16,21 @@ def listar_tipos_tramite(conexion):
         return cursor.fetchall()
     finally:
         cursor.close()
+
+
+#Funcion que devuelve los datos de un ciudadano con su DNI
+def buscar_ciudadano_por_dni(conexion, dni):
+    #Crear un cursor como diccionario
+    cursor = conexion.cursor(dictionary=True)
+    try:
+        #Extraer los datos del ciudadano y su usuario usando el DNI
+        #Las llaves del cursor serán id_ciudadano de la tabla ciudadano, id_usuario, nombre, apellido y correo de la tabla usuario
+        cursor.execute("""
+            SELECT c.id_ciudadano, u.id_usuario, u.nombre, u.apellido, u.correo
+            FROM ciudadano c
+            INNER JOIN usuario u ON c.id_usuario = u.id_usuario
+            WHERE u.dni = %s
+        """, (dni,))
+        return cursor.fetchone()
+    finally:
+        cursor.close()
