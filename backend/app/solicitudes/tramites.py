@@ -58,6 +58,42 @@ def reg_tramite_solicitante(conexion, usuario):
         return ciudadano
 
 
+#Funcion para listar y pedir el tipo de trámite
+def reg_tramite_tipo(conexion):
+    #Se crea la variable con la lista de tipos de trámite
+    tipos = listar_tipos_tramite(conexion)
+
+    titulo_menu("Registrar trámite - Tipo de Trámite")
+    print("TIPOS DE TRÁMITE\n")
+
+    #Se extrae la lista de diccionarios empezando de la posición 1
+    for posicion, tipo in enumerate(tipos, 1):
+        #Por cada elemento se muestra la posicion (numero de la lista) y el nombre del trámite
+        print(f"{posicion}. {tipo['nombre']}")
+
+    #Al final de la lista se mostrará 0 para cancelar
+    print(" 0. Cancelar")
+
+    #Se entra en un bucle para seleccionar el trámite
+    while True:
+        eleccion = input("\nSeleccione el tipo de trámite: ").strip()
+
+        #Si ingresa 0 la función devuelve None
+        if eleccion == "0":
+            return None
+        
+        #Si lo ingresado es digito y entra en el rango de opciones la función devolverá el diccionario
+        if eleccion.isdigit():
+            num_eleccion = int(eleccion)
+            if 1 <= num_eleccion <= len(tipos):
+                #Se ingresa el indice -1 (debido a que el enumerate en tipos no empieza en 0)
+                return tipos[num_eleccion - 1]
+            
+        #Si no pasa las validaciones mostrará un mensaje como opción no válida y se vuelve al bucle
+        print("Opción no válida.")
+
+
+
 def reg_tramite_generar_codigo(cursor):
     #Se crea el prefijo del código del trámite: "2026-"
     prefijo = f"{datetime.now().year}-"
