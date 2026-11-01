@@ -4,6 +4,7 @@ from database.conexion_bd import conectar_bd
 from seguimiento.routes import menu_seguimiento, menu_cambio_estado
 from seguimiento.derivacion import menu_derivar
 from solicitudes.registrardocumento import registrar_documento
+from solicitudes.tramites import registrar_tramite
 # FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
 def ejecutar_seguimiento(usuario):
 
@@ -103,7 +104,8 @@ def opciones_rol(id_rol):
 # Diccionario con funciones de prueba para cada opción
 funciones_menu = {
 
-        "Registrar trámite": registrar_documento,
+        #"Registrar trámite": registrar_documento,
+        "Registrar trámite": registrar_tramite,
         "Derivar trámites": menu_derivar,
         "Registrar personal": "Ingresar el nombre de la funcion",
         "Gestionar ciudadanos":menu_ciudadanos,
@@ -179,6 +181,7 @@ def ejecutar_menu(usuario):
                 "Derivar trámites",
                 "Seguimiento de expediente",
                 "Cambio de estado",
+                "Registrar trámite"
             ):
                 funcion_menu(usuario)
             else:
