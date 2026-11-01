@@ -66,7 +66,7 @@ def reg_tramite_tipo(conexion):
     titulo_menu("Registrar trámite - Tipo de Trámite")
     print("TIPOS DE TRÁMITE\n")
 
-    #Se extrae la lista de diccionarios empezando de la posición 1
+    #Se extrae la lista de diccionarios con los tipos empezando de la posición 1
     for posicion, tipo in enumerate(tipos, 1):
         #Por cada elemento se muestra la posicion (numero de la lista) y el nombre del trámite
         print(f"{posicion}. {tipo['nombre']}")
@@ -267,3 +267,100 @@ def reg_tramite_guardar_bd(conexion, ciudadano, id_tipo_tramite, asunto, adjunto
 
         #Se devuelve el código de expediente generado
         return codigo_tramite
+
+
+#Se crea la función donde se usan todas las funciones creadas para registrar el trámite
+def registrar_tramite(usuario):
+
+    #Se abre la conexión con la bd
+    conexion = conectar_bd()
+    if conexion is None:
+        input("\nPresione Enter para regresar al menú.")
+        return
+
+    try:
+
+        titulo_menu("Registrar trámite")
+
+        #Registrar solicitante dandole parámetros de bd y usuario
+        ciudadano = reg_tramite_solicitante(conexion, usuario)
+        #Si la función devuelve None se cancela la operación
+        if ciudadano is None:
+            print("Operación cancelada.")
+            return
+
+        #Si se obtiene un ciudadano se muestra su nombre
+        solicitante = f"{ciudadano['nombre']} {ciudadano['apellido']}"
+        print(f"\nSolicitante: {solicitante}\n")
+
+        #Registrar el tipo de trámite
+        tipo = reg_tramite_tipo(conexion)
+
+        #Si se inserta 0 la función devuelve None y se cancela la operación
+        if tipo is None:
+            print("Operación cancelada.")
+            return
+        #Se muestra el tipo de trámite seleccionado
+        print(f"\nTrámite: {tipo['nombre']}")
+        print(f"{tipo['descripcion']}")
+
+
+        #Registrar el asunto
+        asunto = reg_tramite_asunto(tipo)
+        #Si se inserta 0 la función devuelve None y se cancela la operación
+        if asunto is None:
+            print("Operación cancelada.")
+            return
+
+        #Registrar los adjuntos
+        adjuntos = reg_tramite_adjuntos(tipo)
+        #Si se inserta 0 la función devuelve None y se cancela la operación
+        if adjuntos is None:
+            print("Operación cancelada.")
+            return
+
+        #Se muestra el resumen del trámite registrado y se pide confirmación del usuario
+
+        titulo_menu("Registrar trámite - Resumen")
+        print(" ")
+        print("RESUMEN DEL TRÁMITE")
+        print(" ")
+        print(f"Solicitante : {solicitante}")
+        print(f"Correo      : {ciudadano['correo']}")
+        print(f"Tipo        : {tipo['nombre']}")
+        print(f"Estado      : {ESTADO_INICIAL}")
+        print(f"Asunto      : {asunto}")
+        print(f"Adjuntos    : {', '.join(adjuntos)}")           #Se muestra una cadena de texto de la lista adjuntos
+        print(f"Total Adjuntos. : {len(adjuntos)} documento(s)")
+
+        confirmacion = input("\n¿Confirmar registro? (S/N): ").strip().upper()
+
+        #Si el usuario confirma el registro se usa la función para guardar bd
+        if confirmacion == "S":
+
+            #Si el usuario que registra tiene rol ciudadano se muestra un mensaje
+            if usuario["id_rol"] == ROL_CIUDADANO:
+                observacion = "Trámite registrado por el ciudadano"
+            else:
+                #Si el usuario que registra tiene otro rol se muestra un mensaje
+                observacion = "Trámite registrado por el personal de mesa de partes"
+
+            #Se guarda el trámite en la BD
+            codigo_tramite = reg_tramite_guardar_bd(
+                conexion, ciudadano, tipo["id_tipo_tramite"], asunto,
+                adjuntos, usuario["id_usuario"], observacion
+            )
+
+            #Se muestra el número de expediente y la notificación registrada
+            print(f"\n[OK] Trámite registrado. Número de expediente: {codigo_tramite}")
+            print(f"Se envió una notificación de registro a {ciudadano['correo']}.")
+        else:
+            #Si no se confirma con S se cancela la operación
+            print("Operación cancelada.")
+
+    finally:
+        #Se cierra la conexión de bd luego de todo el proceso
+        conexion.close()
+
+    input("\nPresione Enter para regresar al menú.")
+    
