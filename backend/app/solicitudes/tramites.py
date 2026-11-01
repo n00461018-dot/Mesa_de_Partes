@@ -93,6 +93,36 @@ def reg_tramite_tipo(conexion):
         print("Opción no válida.")
 
 
+#Función para pedir el asunto del trámite
+#Se pasa el parámetro tipo para mostrar el tipo seleccionado junto al asunto
+def reg_tramite_asunto(tipo):
+    #Se inserta el título del menú
+    titulo_menu("Registrar trámite - Asunto")
+    
+    #Se muestra el trámite seleccionado y la descripción (Requisitos)
+    print(f"Trámite seleccionado: {tipo['nombre']}")
+    print(f"Descripción         : {tipo['descripcion']} \n")
+
+    #Bucle para pedir asunto
+    while True:
+        #Se pide ingresar el asunto por consola
+        asunto = input("\nIngrese el asunto del trámite (0 para cancelar): ").strip()
+
+        #Si ingresa 0 se devuelve None
+        if asunto == "0":
+            return None
+
+        #Se valida el asunto y se guarda el resultado en "error"
+        error = validar_asunto(asunto)
+        
+        #Si pasa la validación la función devuelve el asunto
+        if error is None:
+            return asunto
+
+        #Si hay un error se muestra en pantalla y vuelve el bucle
+        print(f"Error: {error}")
+
+
 
 def reg_tramite_generar_codigo(cursor):
     #Se crea el prefijo del código del trámite: "2026-"
