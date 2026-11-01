@@ -124,6 +124,67 @@ def reg_tramite_asunto(tipo):
 
 
 
+
+#Función para pedir y validar los documentos adjuntos del trámite
+def reg_tramite_adjuntos(tipo):
+    #Se inserta el titulo
+    titulo_menu("Registrar trámite - Documentos Adjuntos")
+
+    #Se muestran los valores seleccionados al inicio
+    print(f"Trámite seleccionado: {tipo['nombre']}")
+    print(f"Descripción         : {tipo['descripcion']}")
+
+    print("\nAdjuntos: Ingrese el nombre del archivo"
+          "(Ej: dni.pdf)")
+    
+    #Cadena con las extensiones permitidas para ser mostrada
+    ext_permitidas=', '.join(EXTENSIONES_PERMITIDAS)
+    print(f"Extensiones permitidas: {ext_permitidas}. ")
+    print("Presione Enter para terminar, 0 para cancelar.")
+    print(" ")
+
+    #Se crea la lista de archivos adjuntos
+    lista_archivos = []
+
+    #Se inicia un bucle mientras no se alcance el máximo de adjuntos permitidos
+    while len(lista_archivos) < MAX_ADJUNTOS:
+
+        #Se guarda el total de elementos de la lista de archivos
+        total_archivos=len(lista_archivos)
+
+        #Se solicita el nombre del archivo y se muestra el número
+        nombre = input(f"Adjunto N° {total_archivos+ 1}: ")
+
+        #Si ingresa 0 la función devuelve None
+        if nombre == "0":
+            return None
+
+        #Si no ingresa el archivo
+        if nombre == "":
+            #Si tiene el mínimo de adjuntos se sale del bucle
+            if len(lista_archivos) >= MIN_ADJUNTOS:
+                break
+            #Si no tiene el minimo se muestra un mensaje de error y vuelve al bucle
+            print(f"Error: Debe adjuntar al menos {MIN_ADJUNTOS} documento.")
+            continue
+
+        #Se valida el contenido de lista_archivos
+        error = validar_nombre_archivo(nombre, lista_archivos)
+        if error:
+            #Si hay un error se muestra en pantalla y vuelve al bucle
+            print(f"Error: {error}")
+            continue
+
+        #Si pasa las validaciones se agrega el archivo a la lista
+        lista_archivos.append(nombre)
+
+    #Se devuelve la lista con los documentos adjuntos
+    return lista_archivos
+
+
+
+
+
 def reg_tramite_generar_codigo(cursor):
     #Se crea el prefijo del código del trámite: "2026-"
     prefijo = f"{datetime.now().year}-"
