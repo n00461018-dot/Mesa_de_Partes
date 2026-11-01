@@ -216,3 +216,54 @@ def reg_tramite_generar_codigo(cursor):
     return codigo_tramite
 
 
+
+
+#Función para guardar los datos del trámite utilizando un gestor de contexto
+def reg_tramite_guardar_bd(conexion, ciudadano, id_tipo_tramite, asunto, adjuntos, id_usuario, observacion):
+    
+    
+    with conexion.cursor(dictionary=True) as cursor:
+        
+        #Se guarda el código del trámite nuevo en la variable codigo_tramite
+        codigo_tramite = reg_tramite_generar_codigo(cursor)
+
+        #Se registra el trámite nuevo en la bd
+        cursor.execute("""
+            INSERT INTO expediente (
+                numero_expediente, asunto, estado,
+                id_ciudadano, id_tipo_tramite, id_area
+            ) VALUES (%s, %s, %s, %s, %s, %s)
+        """, (codigo_tramite, asunto, ESTADO_INICIAL, ciudadano["id_ciudadano"],
+              id_tipo_tramite, ID_AREA_MESA_PARTES))
+
+        #Se extrae el ultimo id generado por el INSERT ejecutado previamente en la tabla expediente
+        id_expediente_nuevo = cursor.lastrowid
+
+        #Se registran los documentos adjuntos en la tabla documento
+        for archivo in adjuntos:
+            cursor.execute("""
+                INSERT INTO documento (
+                    nombre_archivo, tipo_documento, ruta_archivo,
+                    fecha_subida, id_expediente
+                ) VALUES (%s, %s, NULL, NOW(), %s)
+            """, (archivo, extraer_tipo_doc(archivo), id_expediente_nuevo))
+
+        #3Se registra los datos en la tabla seguimiento
+        cursor.execute("""
+            INSERT INTO seguimiento (
+                fecha, estado, observacion, id_usuario, id_expediente
+            ) VALUES (NOW(), %s, %s, %s, %s)
+        """, (ESTADO_INICIAL, observacion, id_usuario, id_expediente_nuevo))
+
+        #Se registra  la notificacion del registro en la tabla notificacion
+        #Mensaje que se enviará en la notificación simulada
+        mensaje = f"Su trámite {codigo_tramite} fue registrado correctamente en la Mesa de Partes."
+        cursor.execute("""
+            INSERT INTO notificacion (
+                destinatario, mensaje, tipo_notificacion,
+                estado_envio, fecha_envio, id_expediente, id_usuario
+            ) VALUES (%s, %s, 'Registro', 'Enviado', NOW(), %s, %s)
+        """, (ciudadano["correo"], mensaje, id_expediente_nuevo, id_usuario))
+
+        #Se devuelve el código de expediente generado
+        return codigo_tramite
