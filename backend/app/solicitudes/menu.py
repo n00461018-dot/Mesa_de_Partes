@@ -181,8 +181,7 @@ def ejecutar_menu(usuario):
                 "Registrar trámite",
                 "Derivar trámites",
                 "Seguimiento de expediente",
-                "Cambio de estado",
-                "Registrar trámite"
+                "Cambio de estado"
             ):
                 funcion_menu(usuario)
                 input("\nPresione Enter para regresar al menú.")
