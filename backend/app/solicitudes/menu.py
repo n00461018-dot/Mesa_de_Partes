@@ -176,11 +176,13 @@ def ejecutar_menu(usuario):
 
         if callable(funcion_menu):
             if opcion_seleccionada in (
+                "Registrar trámite",
                 "Derivar trámites",
                 "Seguimiento de expediente",
                 "Cambio de estado",
             ):
                 funcion_menu(usuario)
+                input("\nPresione Enter para regresar al menú.")
             else:
                 funcion_menu()
         else:
