@@ -5,6 +5,8 @@ from seguimiento.routes import menu_seguimiento, menu_cambio_estado
 from seguimiento.derivacion import menu_derivar
 from solicitudes.registrardocumento import registrar_documento
 from solicitudes.tramites import registrar_tramite
+from solicitudes.gestionar_personal import gestionar_personal_areas
+
 # FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
 def ejecutar_seguimiento(usuario):
 
@@ -109,7 +111,7 @@ funciones_menu = {
         "Derivar trámites": menu_derivar,
         "Registrar personal": "Ingresar el nombre de la funcion",
         "Gestionar ciudadanos":menu_ciudadanos,
-        "Gestionar personal y áreas": "Ingresar el nombre de la funcion",
+        "Gestionar personal y áreas": gestionar_personal_areas,
         "Reportes (trámites por área y estado)": "Ingresar el nombre de la funcion",
         "Buscar trámites de todas las áreas": "Ingresar el nombre de la funcion",
         "Bandeja de mi área": "Ingresar el nombre de la funcion",
@@ -172,7 +174,7 @@ def ejecutar_menu(usuario):
             input("\nPresione Enter para continuar.")
             return
 
-        #Cualquier otra opción busca su función en el diccionario
+        # Cualquier otra opción busca su función en el diccionario
         opcion_seleccionada = opciones[numero - 1]
         funcion_menu = funciones_menu.get(opcion_seleccionada)
 
@@ -181,7 +183,8 @@ def ejecutar_menu(usuario):
                 "Registrar trámite",
                 "Derivar trámites",
                 "Seguimiento de expediente",
-                "Cambio de estado"
+                "Cambio de estado",
+                "Gestionar personal y áreas"
             ):
                 funcion_menu(usuario)
                 input("\nPresione Enter para regresar al menú.")
