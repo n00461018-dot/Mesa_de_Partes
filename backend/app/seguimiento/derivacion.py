@@ -1,5 +1,4 @@
 from datetime import datetime
-from .estados import TRANSICIONES
 from database.conexion_bd import conectar_bd
 
 def menu_derivar(usuario):
@@ -46,9 +45,15 @@ def derivar_expediente_area(conexion, id_usuario):
         """, (numero,))
         expediente = cursor.fetchone()
 
-        if expediente is None:
-            conexion.rollback() # Revertimos si no existe
-            print("Expediente no encontrado.")
+        # Validar si el estado actual permite realizar una derivación.
+        estados_permitidos = ("Registrado", "En proceso")
+
+        if expediente["estado"] not in estados_permitidos:
+            conexion.rollback()
+            print(
+                f"No se puede derivar el expediente porque "
+                f"su estado actual es: {expediente['estado']}."
+            )
             return
 
         #  Comprobar el rol y el área del usuario autenticado
