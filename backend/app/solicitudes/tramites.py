@@ -342,7 +342,6 @@ def registrar_tramite(usuario):
         print(f"\nTrámite: {tipo['nombre']}")
         print(f"{tipo['descripcion']}")
 
-
         #Registrar el asunto
         asunto = reg_tramite_asunto(tipo)
         #Si se inserta 0 la función devuelve None y se cancela la operación
@@ -389,9 +388,20 @@ def registrar_tramite(usuario):
                 adjuntos, usuario["id_usuario"], observacion
             )
 
-            #Se muestra el número de expediente y la notificación registrada
-            print(f"\n[OK] Trámite registrado. Número de expediente: {codigo_tramite}")
-            print(f"Se envió una notificación de registro a {ciudadano['correo']}.")
+            
+            # Comprobar si el registro se guardo correctamente.
+            if codigo_tramite is None:
+                print("\nNo se pudo completar el registro del tramite.")
+            else:
+                print(
+                    f"\n[OK] Tramite registrado. "
+                    f"Numero de expediente: {codigo_tramite}"
+                )
+                print(
+                    f"Notificacion registrada para "
+                    f"{ciudadano['correo']}."
+                )
+
         else:
             #Si no se confirma con S se cancela la operación
             print("Operación cancelada.")
@@ -401,4 +411,3 @@ def registrar_tramite(usuario):
         conexion.close()
 
     input("\nPresione Enter para regresar al menú.")
-    
