@@ -25,6 +25,9 @@ def menu_cambio_estado(conexion, id_usuario):
         """, (numero,))
 
         expediente = cursor.fetchone()
+        
+        # Finalizar la transaccion de lectura
+        conexion.commit()
 
     except Exception as error:
         print("Error al consultar el expediente:", error)
