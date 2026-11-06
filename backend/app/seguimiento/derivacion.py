@@ -45,6 +45,14 @@ def derivar_expediente_area(conexion, id_usuario):
         """, (numero,))
         expediente = cursor.fetchone()
 
+        
+        # Verificar si el expediente existe
+        if expediente is None:
+            conexion.rollback()
+            print("Expediente no encontrado.")
+            return
+
+
         # Validar si el estado actual permite realizar una derivación.
         estados_permitidos = ("Registrado", "En proceso")
 
