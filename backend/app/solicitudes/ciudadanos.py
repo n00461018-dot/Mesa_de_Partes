@@ -9,14 +9,7 @@ from database.conexion_bd import conectar_bd
 
 def validar_formato_ciudadano(dni, nombre, apellido, correo, contrasena, telefono):
     # Verificar que los campos obligatorios no estén vacíos
-    if (
-        dni == ""
-        or nombre == ""
-        or apellido == ""
-        or correo == ""
-        or contrasena == ""
-        or telefono == ""
-    ):
+    if not all([dni, nombre, apellido, correo, contrasena, telefono]):
         print("\n[!] Error: Todos los campos obligatorios deben ser completados.")
         return False
 
