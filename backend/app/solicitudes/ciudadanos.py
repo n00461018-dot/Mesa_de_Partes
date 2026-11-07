@@ -271,7 +271,7 @@ def pantalla_consultar_ciudadano():
             titulo_menu("Buscar Ciudadano por DNI")
             dni_busqueda = input("Ingrese el DNI de 8 dígitos a consultar: ").strip()
 
-            if not (dni_busqueda.isdigit() and len(dni_busqueda) == 8):
+            if validar_dni(dni_busqueda) is not None:
                 print("\n[!] Formato inválido: El DNI debe tener 8 dígitos numéricos.")
                 input("\nPresione Enter para continuar.")
                 continue
