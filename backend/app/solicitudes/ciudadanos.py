@@ -70,11 +70,7 @@ def verificar_duplicado(dni, correo):
             cursor.close()
         conexion.close()
 
-
-# ==============================================================================
-# FUNCIONES DE BASE DE DATOS (REGISTRAR Y CONSULTAR CIUDADANOS)
-# ==============================================================================
-
+# Función para registrar el ciudadno en la BD
 def registrar_ciudadano_bd(dni, nombre, apellido, correo, contrasena, telefono, direccion):
     # Inserta primero en 'usuario' (id_rol = 3 para Ciudadano) y luego en 'ciudadano'
     conexion = conectar_bd()
@@ -117,7 +113,7 @@ def registrar_ciudadano_bd(dni, nombre, apellido, correo, contrasena, telefono, 
             cursor.close()
         conexion.close()
 
-
+# Función para consultar el ciudadano utilizando su DNI
 def consultar_ciudadano_por_dni(dni):
     # Busca a un ciudadano por su DNI y cuenta sus expedientes registrados
     # Devuelve un diccionario con los datos, None si no existe o False si hubo error de BD
@@ -180,11 +176,7 @@ def listar_ciudadanos_bd(filtro=""):
             cursor.close()
         conexion.close()
 
-
-# ==============================================================================
-# PANTALLAS INTERACTIVAS DE CONSOLA
-# ==============================================================================
-
+# Función para mostrar todos los datos del ciudadano
 def mostrar_ficha_ciudadano(ciudadano):
     # Imprime de forma ordenada los datos de un ciudadano
     direccion_texto = ciudadano["direccion"] if ciudadano["direccion"] is not None else "No especificada"
