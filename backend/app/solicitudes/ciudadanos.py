@@ -1,5 +1,5 @@
 from mysql.connector import Error
-from solicitudes.extra import titulo_menu
+from solicitudes.extra import titulo_menu, validar_dni
 from database.conexion_bd import conectar_bd
 
 
@@ -13,9 +13,10 @@ def validar_formato_ciudadano(dni, nombre, apellido, correo, contrasena, telefon
         print("\n[!] Error: Todos los campos obligatorios deben ser completados.")
         return False
 
-    # En la BD el DNI tiene 8 dígitos numéricos
-    if not (dni.isdigit() and len(dni) == 8):
-        print("\n[!] Formato inválido: El DNI debe contener exactamente 8 dígitos numéricos.")
+    # Reutilizamos función validar_dni de solicitudes/extra.py para la validación del DNI
+    error_dni = validar_dni(dni)
+    if error_dni is not None:
+        print(f"\n[!] Formato inválido: {error_dni}")
         return False
 
     # El correo debe contener un @, un punto (.), sin espacios y al menos 6 caracteres
