@@ -236,7 +236,7 @@ def pantalla_registrar_ciudadano():
             return
 
         # 1. Validar el formato de los campos antes de conectar a MySQL
-        if not validar_formato_ciudadano(dni, nombre, apellido, correo, contrasena, telefono):
+        if not validar_formato_ciudadano(dni, digito_verificador, nombre, apellido, correo, contrasena, telefono):
             input("\nPresione Enter para intentar de nuevo.")
             continue
 
