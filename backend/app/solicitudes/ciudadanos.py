@@ -1,5 +1,5 @@
 from mysql.connector import Error
-from solicitudes.extra import titulo_menu, validar_dni
+from solicitudes.extra import titulo_menu, validar_dni, digito_verificador_dni
 from database.conexion_bd import conectar_bd
 
 
@@ -7,7 +7,7 @@ from database.conexion_bd import conectar_bd
 # VALIDACIONES DE FORMATO Y DUPLICADOS
 # ==============================================================================
 
-def validar_formato_ciudadano(dni, nombre, apellido, correo, contrasena, telefono):
+def validar_formato_ciudadano(dni, digito_verificador, nombre, apellido, correo, contrasena, telefono):
     # Verificar que los campos obligatorios no estén vacíos
     if not all([dni, nombre, apellido, correo, contrasena, telefono]):
         print("\n[!] Error: Todos los campos obligatorios deben ser completados.")
@@ -18,6 +18,10 @@ def validar_formato_ciudadano(dni, nombre, apellido, correo, contrasena, telefon
     if error_dni is not None:
         print(f"\n[!] Formato inválido: {error_dni}")
         return False
+    
+    error_digito = digito_verificador_dni(dni, digito_verificador)
+    if error_digito is not None:
+        print(f"\n[!] Verificación fallida: {error_digito}")
 
     # El correo debe contener un @, un punto (.), sin espacios y al menos 6 caracteres
     es_correo = (
@@ -201,6 +205,10 @@ def pantalla_registrar_ciudadano():
 
         dni = input("DNI (8 dígitos): ").strip()
         if dni.lower() == "salir":
+            return
+        
+        digito_verificador = input("Código verificador (9no dígito al costado del DNI): ").strip()
+        if digito_verificador.lower() == "salir":
             return
 
         nombre = input("Nombres: ").strip()
