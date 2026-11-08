@@ -6,12 +6,12 @@ def enviar_correo_simulado(destinatario, asunto, mensaje_cuerpo):
     print("\n[SISTEMA] Conectando con el servidor...")
     time.sleep(1.5) 
     print("--------------------------------------------------")
-    print(f"ENVIANDO CORREO A: {destinatario}")
+    print(f"ENVIANDO EL CORREO A: {destinatario}")
     print(f"ASUNTO: {asunto}")
     print("--------------------------------------------------")
     time.sleep(1)
 
-def procesar_respuesta_correo(correo_destino, asunto, contenido):
+def procesar_respuesta_correo_sin_bd(correo_destino, asunto, contenido):
     # 1. Simulamos el envío directamente
     enviar_correo_simulado(correo_destino, asunto, contenido)
     
