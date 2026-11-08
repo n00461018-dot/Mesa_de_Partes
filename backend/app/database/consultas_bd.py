@@ -34,3 +34,22 @@ def buscar_ciudadano_por_dni(conexion, dni):
         return cursor.fetchone()
     finally:
         cursor.close()
+
+
+
+#Función para obtener los trámites con su tipo, fecha, área actual y estado en una lista de diccionarios
+def consultar_tramites(conexion):
+
+    #Se establece el cursor para extraer los datos como diccionario
+    with conexion.cursor(dictionary=True) as cursor:
+        #Se realiza el select de numero_expediente, tipo_tramite, fecha_registro, area y estado
+        cursor.execute("""
+            SELECT e.numero_expediente, tt.nombre AS tipo_tramite,
+                   e.fecha_registro, a.nombre AS area, e.estado
+            FROM expediente e
+            INNER JOIN tipo_tramite tt ON e.id_tipo_tramite = tt.id_tipo_tramite
+            INNER JOIN area a ON e.id_area = a.id_area
+        """)
+
+        #Se devuelve todos los diccionarios obtenidos en una lista de diccionarios
+        return cursor.fetchall()

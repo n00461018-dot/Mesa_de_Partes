@@ -1,5 +1,5 @@
 from mysql.connector import Error
-from solicitudes.extra import titulo_menu
+from solicitudes.extra import titulo_menu, validar_dni
 from database.conexion_bd import conectar_bd
 
 
@@ -9,20 +9,14 @@ from database.conexion_bd import conectar_bd
 
 def validar_formato_ciudadano(dni, nombre, apellido, correo, contrasena, telefono):
     # Verificar que los campos obligatorios no estén vacíos
-    if (
-        dni == ""
-        or nombre == ""
-        or apellido == ""
-        or correo == ""
-        or contrasena == ""
-        or telefono == ""
-    ):
+    if not all([dni, nombre, apellido, correo, contrasena, telefono]):
         print("\n[!] Error: Todos los campos obligatorios deben ser completados.")
         return False
 
-    # En la BD el DNI tiene 8 dígitos numéricos
-    if not (dni.isdigit() and len(dni) == 8):
-        print("\n[!] Formato inválido: El DNI debe contener exactamente 8 dígitos numéricos.")
+    # Reutilizamos función validar_dni de solicitudes/extra.py para la validación del DNI
+    error_dni = validar_dni(dni)
+    if error_dni is not None:
+        print(f"\n[!] Formato inválido: {error_dni}")
         return False
 
     # El correo debe contener un @, un punto (.), sin espacios y al menos 6 caracteres
@@ -76,11 +70,7 @@ def verificar_duplicado(dni, correo):
             cursor.close()
         conexion.close()
 
-
-# ==============================================================================
-# FUNCIONES DE BASE DE DATOS (REGISTRAR Y CONSULTAR CIUDADANOS)
-# ==============================================================================
-
+# Función para registrar el ciudadno en la BD
 def registrar_ciudadano_bd(dni, nombre, apellido, correo, contrasena, telefono, direccion):
     # Inserta primero en 'usuario' (id_rol = 3 para Ciudadano) y luego en 'ciudadano'
     conexion = conectar_bd()
@@ -123,7 +113,7 @@ def registrar_ciudadano_bd(dni, nombre, apellido, correo, contrasena, telefono, 
             cursor.close()
         conexion.close()
 
-
+# Función para consultar el ciudadano utilizando su DNI
 def consultar_ciudadano_por_dni(dni):
     # Busca a un ciudadano por su DNI y cuenta sus expedientes registrados
     # Devuelve un diccionario con los datos, None si no existe o False si hubo error de BD
@@ -186,11 +176,7 @@ def listar_ciudadanos_bd(filtro=""):
             cursor.close()
         conexion.close()
 
-
-# ==============================================================================
-# PANTALLAS INTERACTIVAS DE CONSOLA
-# ==============================================================================
-
+# Función para mostrar todos los datos del ciudadano
 def mostrar_ficha_ciudadano(ciudadano):
     # Imprime de forma ordenada los datos de un ciudadano
     direccion_texto = ciudadano["direccion"] if ciudadano["direccion"] is not None else "No especificada"
@@ -285,7 +271,7 @@ def pantalla_consultar_ciudadano():
             titulo_menu("Buscar Ciudadano por DNI")
             dni_busqueda = input("Ingrese el DNI de 8 dígitos a consultar: ").strip()
 
-            if not (dni_busqueda.isdigit() and len(dni_busqueda) == 8):
+            if validar_dni(dni_busqueda) is not None:
                 print("\n[!] Formato inválido: El DNI debe tener 8 dígitos numéricos.")
                 input("\nPresione Enter para continuar.")
                 continue
