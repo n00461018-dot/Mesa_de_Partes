@@ -26,3 +26,13 @@ def rep_ordenar_burbuja(lista, campo, descendente):
             break
 
     return ordenada
+
+
+#Funcion para devolver una lista nueva solo con los registros cuyo campo coincide con el valor
+def rep_filtrar(lista, campo, valor):
+    filtrados = []
+    for registro in lista:
+        if campo is None or registro[campo] == valor:
+            filtrados.append(registro)
+    return filtrados
+
