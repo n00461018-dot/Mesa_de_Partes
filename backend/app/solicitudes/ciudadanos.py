@@ -22,6 +22,7 @@ def validar_formato_ciudadano(dni, digito_verificador, nombre, apellido, correo,
     error_digito = digito_verificador_dni(dni, digito_verificador)
     if error_digito is not None:
         print(f"\n[!] Verificación fallida: {error_digito}")
+        return False
 
     # El correo debe contener un @, un punto (.), sin espacios y al menos 6 caracteres
     es_correo = (
