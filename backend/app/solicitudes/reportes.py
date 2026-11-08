@@ -70,3 +70,28 @@ def rep_elegir_valor(lista, campo):
     if eleccion != "0":
         input("\nOpción no válida. Presione Enter para continuar.")
     return None
+
+
+#Funcion para mostrar las opciones de orden para el reporte y devuelve el valor escogido
+def rep_elegir_orden():
+    #Se crea el menú con las opciones de ordenamiento como submenu
+    titulo_menu("Cambiar orden")
+    print(" 1. Fecha (más antiguo primero)")
+    print(" 2. Fecha (más reciente primero)")
+    print(" 3. Área (A-Z)")
+    print(" 0. Cancelar")
+
+    #Se pide la selección
+    eleccion = input("\nSeleccione una opción: ").strip()
+    
+    #Si la opción escogida esta dentro de las permitidas la función la retorna
+    if eleccion in ("1", "2", "3"):
+        return eleccion
+        
+    #Si ingresa un valor diferente de 0 se notifica el error
+    if eleccion != "0":
+        input("\nOpción no válida. Presione Enter para continuar.")
+
+    #Si se selecciona 0 pasa a None
+    return None
+
