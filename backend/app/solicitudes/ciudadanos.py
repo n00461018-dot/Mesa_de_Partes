@@ -22,6 +22,7 @@ def validar_formato_ciudadano(dni, digito_verificador, nombre, apellido, correo,
     error_digito = digito_verificador_dni(dni, digito_verificador)
     if error_digito is not None:
         print(f"\n[!] Verificación fallida: {error_digito}")
+        return False
 
     # El correo debe contener un @, un punto (.), sin espacios y al menos 6 caracteres
     es_correo = (
@@ -236,7 +237,7 @@ def pantalla_registrar_ciudadano():
             return
 
         # 1. Validar el formato de los campos antes de conectar a MySQL
-        if not validar_formato_ciudadano(dni, nombre, apellido, correo, contrasena, telefono):
+        if not validar_formato_ciudadano(dni, digito_verificador, nombre, apellido, correo, contrasena, telefono):
             input("\nPresione Enter para intentar de nuevo.")
             continue
 
