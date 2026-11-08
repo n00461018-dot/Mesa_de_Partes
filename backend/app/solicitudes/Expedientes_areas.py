@@ -16,4 +16,4 @@ def buscar_expedientes_todas_las_areas(conexion, usuario):
     print("\n--- BÚSQUEDA GLOBAL DE EXPEDIENTES (TODAS LAS ÁREAS) ---")
     print("Acceso concedido. Preparando consulta...")
     
-    # Aquí irá la consulta SQL en el siguiente commit
+    #falta el resto del código para realizar la búsqueda global de expedientes en todas las áreas.
