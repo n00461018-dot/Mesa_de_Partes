@@ -95,3 +95,23 @@ def rep_elegir_orden():
     #Si se selecciona 0 pasa a None
     return None
 
+#Función para mostrar en pantalla una tabla con la lista de trámites
+def rep_mostrar_tabla(tramites):
+    #Comprueba si la lista de trámites esta vacía para mostrar un mensaje y parar la función
+    if len(tramites) == 0:
+        print("No hay datos para mostrar en la opción seleccionada")
+        return
+
+    #Muestra la cabecera de la tabla con espacios fijos
+    print(f"{'N° Exp.':<10} | {'Trámite':<26} | {'Fecha':<16} | {'Área':<26} | {'Estado':<12}")
+    print("-" * 100)
+    
+    #Se crea un bucle para revisar cada trámite y dar formato a la fecha y ajustar textos a mostrar
+    #En base a los campos de la funcióm consultar_tramites
+    for t in tramites:
+        fecha = t["fecha_registro"].strftime("%d/%m/%Y %H:%M")
+        print(f"{t['numero_expediente']:<10} | {t['tipo_tramite'][:26]:<26} | {fecha:<16} | {t['area'][:26]:<26} | {t['estado']:<12}")
+        
+    #Mostrar el total de tramites listados
+    print("-" * 100)
+    print(f"Total de trámites: {len(tramites)}")
