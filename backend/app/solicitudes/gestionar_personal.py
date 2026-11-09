@@ -2,7 +2,6 @@ from database.conexion_bd import conectar_bd
 from mysql.connector import Error
 from solicitudes.extra import titulo_menu
 
-
 def gestionar_personal_areas(usuario):
 
     # Validar que el usuario sea administrador
@@ -257,6 +256,7 @@ def gestionar_personal_areas(usuario):
 
     # Capturar los errores de MySQL
     except Error as error:
+        conexion.rollback()
         print(f"Error al consultar trabajadores y areas: {error}")
 
     # Cerrar los recursos utilizados
