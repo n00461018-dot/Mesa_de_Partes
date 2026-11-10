@@ -223,7 +223,10 @@ def reg_tramite_guardar_bd(conexion, ciudadano, id_tipo_tramite,
     cursor = conexion.cursor(dictionary=True)
 
     try:
-        # Iniciar la transaccion antes de realizar las inserciones.
+        # Cerrar la transaccion abierta por las consultas previas.
+        conexion.commit()
+
+        # Iniciar una transaccion nueva para guardar el tramite.
         conexion.start_transaction()
 
         # Generar el codigo del nuevo expediente.
