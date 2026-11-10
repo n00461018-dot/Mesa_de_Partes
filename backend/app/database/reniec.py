@@ -18,7 +18,7 @@ def digito_verificador_dni(dni, digito_ingresado):
     suma = 0
     # Con este bucle for hacemos que el resultado de la multiplicación de cada número del DNI con su correspondiente factor se almacene en la variable suma
     for i in range(8):
-        suma += int(dni[i] * factores[i])
+        suma += int(dni[i]) * factores[i]
     # Calculamos el residuo
     residuo = suma % 11
     # Calculamos el indice para compararlo con la tabla de equivalencia 
