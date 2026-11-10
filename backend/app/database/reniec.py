@@ -1,0 +1,30 @@
+
+RUTA_PADRON_RENIEC = "database/padron_reniec.txt"
+
+def digito_verificador_dni(dni, digito_ingresado):
+    # Factores utilizados para la multipliacion con los números del DNI
+    factores = [3, 2, 7, 6, 5, 4, 3, 2]
+    # Lista de equivalencias dependiendo del índice para calcular el número verificador
+    equivalencia = ["6", "7", "8", "9", "0", "1", "1", "2", "3", "4", "5"]
+    # Convertimos el dígito ingresado por el usuario a string y eliminamos los espacios con strip
+    digito_ingresado = str(digito_ingresado).strip()
+    # Si es que el dígito ingresado no es un número y no es de un solo caracter
+    if not (digito_ingresado.isdigit() and len(digito_ingresado) == 1):
+        # Retorna el mensaje a continuación
+        return "El código verificador debe ser 1 dígito numérico (0 - 9)."
+    
+    # Producto escalar entre los 8 dígitos del DNI y el arreglo de factores
+    suma = 0
+    # Con este bucle for hacemos que el resultado de la multiplicación de cada número del DNI con su correspondiente factor se almacene en la variable suma
+    for i in range(8):
+        suma += int(dni[i] * factores[i])
+    # Calculamos el residuo
+    residuo = suma % 11
+    # Calculamos el indice para compararlo con la tabla de equivalencia 
+    indice = (11 - residuo) % 11 # Se utiliza el "% 11" para evitar un error en caso que el residuo sea igual a 0
+    digito_real = equivalencia[indice] # Se busca el digito real en la equivalencia utilizando el indice
+    # Si es que el digito ingresado por el usuario no es igual al digito verificador real entonces le aparece el siguiente mensaje
+    if digito_ingresado != digito_real:
+        return "El código verificador no coincide con el DNI ingresado."
+    
+    return None
