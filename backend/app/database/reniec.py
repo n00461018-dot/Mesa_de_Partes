@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 RUTA_PADRON_RENIEC = "database/padron_reniec.txt"
@@ -38,3 +39,21 @@ def validar_padron_reniec(dni, emision_texto, caducidad_texto):
         fecha_caducidad = datetime.strptime(caducidad_texto.strip(), "%d/%m/%Y").date()
     except ValueError:
         return "Formato de fecha inválido. Use el formato DD/MM/AAAA."
+    
+    # Leer el archivo de padrón RENIEC y cargar en arreglos paralelos (DNI, fecha de emisión, fecha de caducidad)
+    if not os.path.exists(RUTA_PADRON_RENIEC):
+        return "El archivo de padrón RENIEC no existe."
+    
+    dnis = []
+    emisiones = []
+    caducidades = []
+    
+    with open(RUTA_PADRON_RENIEC, "r", encoding="utf-8") as archivo:
+        for linea in archivo:
+            linea_limpia = linea.strip()
+            if linea_limpia != "":
+                partes = linea_limpia.split(";")
+                dnis.append(partes[0])
+                emisiones.append(partes[1])
+                caducidades.append(partes[2])
+    
