@@ -28,7 +28,6 @@ def ejecutar_seguimiento(usuario):
     finally:
         conexion.close()
 
-
 # FUNCIÓN PARA CAMBIAR EL ESTADO DE UN EXPEDIENTE
 def ejecutar_cambio_estado(usuario):
 
@@ -102,7 +101,6 @@ def opciones_rol(id_rol):
         ]
     return []
 
-
 # Diccionario con funciones de prueba para cada opción
 funciones_menu = {
 
@@ -120,7 +118,6 @@ funciones_menu = {
         "Seguimiento de expediente": ejecutar_seguimiento,
         "Cambio de estado": ejecutar_cambio_estado,
     }
-
 
 #MENÚ DINÁMICO SEGÚN EL ROL
 
@@ -148,12 +145,9 @@ def ejecutar_menu(usuario):
             print(f"Área: {usuario['nombre_area']}")
         print("-" * 50)
 
-
         #Se imprimen las opciones numeradas desde el número 1 (i+1)
         for i in range(len(opciones)):
             print(f" {i + 1}. {opciones[i]}")
-
-
 
         #Se pide la opción y se valida que sea un número dentro del rango
         eleccion = input("\nSeleccione una opción: ").strip()
@@ -164,7 +158,6 @@ def ejecutar_menu(usuario):
             input("\nOpción no válida. Presione Enter para reintentar.")
             #Se regresa al inicio del Bucle
             continue
-
 
         #La última opción siempre es Cerrar sesión: Se vuelve al login
         numero = int(eleccion)
