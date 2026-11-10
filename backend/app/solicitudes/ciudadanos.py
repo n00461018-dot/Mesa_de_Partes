@@ -1,6 +1,7 @@
 from mysql.connector import Error
-from solicitudes.extra import titulo_menu, validar_dni, digito_verificador_dni
+from solicitudes.extra import titulo_menu, validar_dni
 from database.conexion_bd import conectar_bd
+from database.reniec import digito_verificador_dni
 
 
 # ==============================================================================
