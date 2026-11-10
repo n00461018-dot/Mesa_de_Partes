@@ -1,3 +1,4 @@
+from datetime import datetime
 
 RUTA_PADRON_RENIEC = "database/padron_reniec.txt"
 
@@ -29,3 +30,11 @@ def digito_verificador_dni(dni, digito_ingresado):
         return "El código verificador no coincide con el DNI ingresado."
     
     return None
+
+def validar_padron_reniec(dni, emision_texto, caducidad_texto):
+    # Validamos que las fechas ingresadas tengan formato DD/MM/AAAA
+    try:
+        datetime.strptime(emision_texto.strip(), "%d/%m/%Y")
+        fecha_caducidad = datetime.strptime(caducidad_texto.strip(), "%d/%m/%Y").date()
+    except ValueError:
+        return "Formato de fecha inválido. Use el formato DD/MM/AAAA."
