@@ -1,16 +1,16 @@
 from mysql.connector import Error
 from solicitudes.extra import titulo_menu, validar_dni
 from database.conexion_bd import conectar_bd
-from database.reniec import digito_verificador_dni
+from database.reniec import digito_verificador_dni, validar_padron_reniec
 
 
 # ==============================================================================
 # VALIDACIONES DE FORMATO Y DUPLICADOS
 # ==============================================================================
 
-def validar_formato_ciudadano(dni, digito_verificador, nombre, apellido, correo, contrasena, telefono):
+def validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono):
     # Verificar que los campos obligatorios no estén vacíos
-    if not all([dni, digito_verificador, nombre, apellido, correo, contrasena, telefono]):
+    if not all([dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono]):
         print("\n[!] Error: Todos los campos obligatorios deben ser completados.")
         return False
 
@@ -23,6 +23,11 @@ def validar_formato_ciudadano(dni, digito_verificador, nombre, apellido, correo,
     error_digito = digito_verificador_dni(dni, digito_verificador)
     if error_digito is not None:
         print(f"\n[!] Verificación fallida: {error_digito}")
+        return False
+    
+    error_padron = validar_padron_reniec(dni, fecha_emision, fecha_caducidad)
+    if error_padron is not None:
+        print(f"\n[!] Validación RENIEC fallida: {error_padron}")
         return False
 
     # El correo debe contener un @, un punto (.), sin espacios y al menos 6 caracteres
@@ -212,6 +217,14 @@ def pantalla_registrar_ciudadano():
         digito_verificador = input("Código verificador (9no dígito al costado del DNI): ").strip()
         if digito_verificador.lower() == "salir":
             return
+        
+        fecha_emision = input("Fecha de emisión del DNI (DD/MM/AAAA): ").strip()
+        if fecha_emision.lower() == "salir":
+            return
+        
+        fecha_caducidad = input("Fecha de caducidad del DNI (DD/MM/AAAA): ").strip()
+        if fecha_caducidad.lower() == "salir":
+            return
 
         nombre = input("Nombres: ").strip()
         if nombre.lower() == "salir":
@@ -238,7 +251,7 @@ def pantalla_registrar_ciudadano():
             return
 
         # 1. Validar el formato de los campos antes de conectar a MySQL
-        if not validar_formato_ciudadano(dni, digito_verificador, nombre, apellido, correo, contrasena, telefono):
+        if not validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono):
             input("\nPresione Enter para intentar de nuevo.")
             continue
 
