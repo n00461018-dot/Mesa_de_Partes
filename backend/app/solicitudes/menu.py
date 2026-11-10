@@ -4,6 +4,9 @@ from database.conexion_bd import conectar_bd
 from seguimiento.routes import menu_seguimiento, menu_cambio_estado
 from seguimiento.derivacion import menu_derivar
 from solicitudes.registrardocumento import registrar_documento
+from solicitudes.tramites import registrar_tramite
+from solicitudes.gestionar_personal import gestionar_personal_areas
+
 # FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
 def ejecutar_seguimiento(usuario):
 
@@ -24,7 +27,6 @@ def ejecutar_seguimiento(usuario):
 
     finally:
         conexion.close()
-
 
 # FUNCIÓN PARA CAMBIAR EL ESTADO DE UN EXPEDIENTE
 def ejecutar_cambio_estado(usuario):
@@ -99,15 +101,14 @@ def opciones_rol(id_rol):
         ]
     return []
 
-
 # Diccionario con funciones de prueba para cada opción
 funciones_menu = {
 
-        "Registrar trámite": registrar_documento,
+        "Registrar trámite": registrar_tramite,
         "Derivar trámites": menu_derivar,
         "Registrar personal": "Ingresar el nombre de la funcion",
         "Gestionar ciudadanos":menu_ciudadanos,
-        "Gestionar personal y áreas": "Ingresar el nombre de la funcion",
+        "Gestionar personal y áreas": gestionar_personal_areas,
         "Reportes (trámites por área y estado)": "Ingresar el nombre de la funcion",
         "Buscar trámites de todas las áreas": "Ingresar el nombre de la funcion",
         "Bandeja de mi área": "Ingresar el nombre de la funcion",
@@ -116,7 +117,6 @@ funciones_menu = {
         "Seguimiento de expediente": ejecutar_seguimiento,
         "Cambio de estado": ejecutar_cambio_estado,
     }
-
 
 #MENÚ DINÁMICO SEGÚN EL ROL
 
@@ -144,12 +144,9 @@ def ejecutar_menu(usuario):
             print(f"Área: {usuario['nombre_area']}")
         print("-" * 50)
 
-
         #Se imprimen las opciones numeradas desde el número 1 (i+1)
         for i in range(len(opciones)):
             print(f" {i + 1}. {opciones[i]}")
-
-
 
         #Se pide la opción y se valida que sea un número dentro del rango
         eleccion = input("\nSeleccione una opción: ").strip()
@@ -160,7 +157,6 @@ def ejecutar_menu(usuario):
             input("\nOpción no válida. Presione Enter para reintentar.")
             #Se regresa al inicio del Bucle
             continue
-
 
         #La última opción siempre es Cerrar sesión: Se vuelve al login
         numero = int(eleccion)
@@ -176,11 +172,14 @@ def ejecutar_menu(usuario):
 
         if callable(funcion_menu):
             if opcion_seleccionada in (
+                "Registrar trámite",
                 "Derivar trámites",
                 "Seguimiento de expediente",
                 "Cambio de estado",
+                "Gestionar personal y áreas"
             ):
                 funcion_menu(usuario)
+                input("\nPresione Enter para regresar al menú.")
             else:
                 funcion_menu()
         else:
