@@ -1,6 +1,7 @@
 
 RUTA_PADRON_RENIEC = "database/padron_reniec.txt"
 
+# Función para el calculo y validación del digito verificador del DNI
 def digito_verificador_dni(dni, digito_ingresado):
     # Factores utilizados para la multipliacion con los números del DNI
     factores = [3, 2, 7, 6, 5, 4, 3, 2]
