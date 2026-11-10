@@ -56,4 +56,14 @@ def validar_padron_reniec(dni, emision_texto, caducidad_texto):
                 dnis.append(partes[0])
                 emisiones.append(partes[1])
                 caducidades.append(partes[2])
+                
+    # Buscamos el DNI en el arreglo de DNIs y obtenemos el índice correspondiente            
+    indice_encontrador = -1
+    for i in range(len(dnis)):
+        if dnis[i] == dni:
+            indice_encontrador = i
+            break
+    # Si no se encuentra el DNI en el padrón, retornamos un mensaje indicando que no se encuentra
+    if indice_encontrador == -1:
+        return f"El DNI {dni} no se encuentra en el padrón RENIEC."
     
