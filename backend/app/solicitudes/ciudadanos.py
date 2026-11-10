@@ -10,7 +10,7 @@ from database.reniec import digito_verificador_dni
 
 def validar_formato_ciudadano(dni, digito_verificador, nombre, apellido, correo, contrasena, telefono):
     # Verificar que los campos obligatorios no estén vacíos
-    if not all([dni, nombre, apellido, correo, contrasena, telefono]):
+    if not all([dni, digito_verificador, nombre, apellido, correo, contrasena, telefono]):
         print("\n[!] Error: Todos los campos obligatorios deben ser completados.")
         return False
 
