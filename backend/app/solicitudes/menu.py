@@ -104,6 +104,7 @@ def opciones_rol(id_rol):
 # Diccionario con funciones de prueba para cada opción
 funciones_menu = {
 
+        #"Registrar trámite": registrar_documento,
         "Registrar trámite": registrar_tramite,
         "Derivar trámites": menu_derivar,
         "Registrar personal": "Ingresar el nombre de la funcion",
@@ -166,7 +167,7 @@ def ejecutar_menu(usuario):
             input("\nPresione Enter para continuar.")
             return
 
-        #Cualquier otra opción busca su función en el diccionario
+        # Cualquier otra opción busca su función en el diccionario
         opcion_seleccionada = opciones[numero - 1]
         funcion_menu = funciones_menu.get(opcion_seleccionada)
 

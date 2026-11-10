@@ -1,19 +1,17 @@
 # Acciones disponibles según el estado actual del expediente.
 TRANSICIONES = {
-    "Registrado": {
-        "1": ("Iniciar revision", "En evaluación")
-    },
     "Derivado": {
-        "1": ("Confirmar recepcion", "Recibido")
+        "1": ("Iniciar atencion del expediente", "En proceso")
     },
-    "Recibido": {
-        "1": ("Iniciar revision", "En evaluación")
+
+    "En proceso": {
+        "1": ("Solicitar subsanacion", "Observado"),
+        "2": ("Finalizar tramite", "Atendido"),
+        "3": ("Rechazar tramite", "Rechazado")
     },
-    "En evaluación": {
-        "1": ("Solicitar subsanacion", "Observado")
-    },
+
     "Observado": {
-        "1": ("Reanudar revision", "En evaluación")
+        "1": ("Reanudar atencion del expediente", "En proceso")
     }
 }
 
