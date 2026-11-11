@@ -1,41 +1,71 @@
 # Módulo para la gestión y búsqueda global de expedientes (Solo Administrador)
 from mysql.connector import Error
+from solicitudes.extra import titulo_menu
+
+def _mostrar_tabla_expedientes(expedientes):
+    """
+    Función auxiliar para mostrar los expedientes en un formato tabular 
+    alineado en consola, respetando el estándar visual del proyecto.
+    """
+    if not expedientes or len(expedientes) == 0:
+        print("\n[!] No hay datos para mostrar.")
+        return
+
+    # Cabecera de la tabla con anchos de columna fijos
+    print(f"{'N° Exp.':<12} | {'Tipo Trámite':<24} | {'Área Responsable':<24} | {'Estado':<12} | {'Fecha':<16}")
+    print("-" * 96)
+    
+    # Recorremos la lista para alinear textualmente cada columna y formatear la fecha
+    for e in expedientes:
+        fecha_str = ""
+        if e.get("fecha_registro"):
+            fecha_str = e["fecha_registro"].strftime("%d/%m/%Y %H:%M")
+            
+        num_exp = str(e.get("numero_expediente", ""))[:12]
+        tipo_t = str(e.get("tipo_tramite", ""))[:24]
+        area_n = str(e.get("nombre_area", ""))[:24]
+        estado = str(e.get("estado", ""))[:12]
+        
+        print(f"{num_exp:<12} | {tipo_t:<24} | {area_n:<24} | {estado:<12} | {fecha_str:<16}")
+        
+    print("-" * 96)
+    print(f"Total de expedientes listados: {len(expedientes)}")
+
 
 def buscar_expedientes_todas_las_areas(conexion, usuario):
     """
     Función principal para buscar expedientes de todas las áreas.
     Valida primero que el usuario tenga rol de Administrador.
     """
-    # 1. Validación de seguridad alineada al estándar del proyecto (id_rol == 1 para Administrador)
+    #  Validación de seguridad alineada al estándar del proyecto (id_rol == 1 para Administrador)
     if usuario.get("id_rol") != 1:
         print("\n[ACCESO DENEGADO] No tienes permisos de Administrador para realizar esta búsqueda global.")
         return
 
-    print("\n--- BÚSQUEDA GLOBAL DE EXPEDIENTES (TODAS LAS ÁREAS) ---")
+    titulo_menu("Búsqueda Global de Expedientes")
+    print("Supervisión global de trámites a nivel de toda la municipalidad.\n")
     
-    # Solicitamos al administrador el criterio de búsqueda (número de expediente, DNI, área, etc.)
-    filtro_texto = input("Ingrese el número de expediente, DNI, área o término a buscar (Enter para ver todo): ").strip()
+    # Solicitamos el criterio de búsqueda al administrador
+    filtro_texto = input("Ingrese N° de expediente, DNI, área o término (Enter para ver todos): ").strip()
 
     print("\nProcesando búsqueda global...")
     
-    # Llamamos a la función auxiliar enviándole el filtro ingresado por consola
+    # Consultamos la base de datos aplicando el filtro de texto
     resultados = _consultar_todos_los_expedientes_bd(conexion, filtro_texto)
     
-    # Validamos si ocurrió un error en la consulta (retorna False)
+    # Validamos si ocurrió un error de MySQL
     if resultados is False:
         print("\n[!] Ocurrió un error al consultar la base de datos.")
         return
         
-    # Validamos si la lista está vacía (Criterio de aceptación Trello: "Si no hay resultados, se informa al usuario")
+    # Validamos la condición de lista vacía (Criterio de Aceptación Q.A.)
     if not resultados:
         print("\n[!] No se encontraron expedientes coincidentes en el sistema.")
         return
 
-    print(f"\n[OK] Se encontraron {len(resultados)} expediente(s) en total.")
-    
-    # Nota: Los datos detallados de la búsqueda se mostrarán en el siguiente commit con formato tabular.
-    for exp in resultados:
-        print(f"- Expediente: {exp['numero_expediente']} | Área: {exp['nombre_area']} | Estado: {exp['estado']}")
+    # Mostramos los expedientes usando la tabla formateada
+    print(f"\n[OK] Se encontraron {len(resultados)} coincidencia(s):\n")
+    _mostrar_tabla_expedientes(resultados)
 
 
 def _consultar_todos_los_expedientes_bd(conexion, filtro_texto=""):
@@ -45,8 +75,7 @@ def _consultar_todos_los_expedientes_bd(conexion, filtro_texto=""):
     """
     cursor = None
     try:
-        # Se inicializa el cursor configurado en diccionario (dictionary=True) 
-        # para que los registros se devuelvan como diccionarios clave-valor.
+        # Se inicializa el cursor configurado en diccionario (dictionary=True)
         cursor = conexion.cursor(dictionary=True)
         
         # Consulta SQL base uniendo las tablas clave del sistema sin restricciones de área
@@ -70,7 +99,7 @@ def _consultar_todos_los_expedientes_bd(conexion, filtro_texto=""):
         
         parametros = []
         
-        # Si el administrador ingresa texto, agregamos la cláusula WHERE con LIKE de manera segura
+        # Si el administrador ingresa texto, agregamos la cláusula WHERE con LIKE
         if filtro_texto:
             sql += """ 
                 WHERE e.numero_expediente LIKE %s 
@@ -80,25 +109,19 @@ def _consultar_todos_los_expedientes_bd(conexion, filtro_texto=""):
                    OR u.nombre LIKE %s 
                    OR u.apellido LIKE %s
             """
-            # Creamos el patrón con comodines '%' para búsquedas parciales
             patron = f"%{filtro_texto}%"
-            # Asignamos el valor para cada uno de los 6 parámetros de la consulta
             parametros = [patron, patron, patron, patron, patron, patron]
             
-        # Ordenamos los resultados del más reciente al más antiguo
         sql += " ORDER BY e.fecha_registro DESC"
         
-        # Se ejecuta la sentencia SQL pasando los parámetros de forma segura (previene Inyección SQL)
+        # Se ejecuta la sentencia SQL con los parámetros sanitizados en tupla
         cursor.execute(sql, tuple(parametros))
         
-        # Retorna todos los registros resultantes
         return cursor.fetchall()
 
     except Error as e:
-        # Captura errores de MySQL
         print(f"Error al consultar los expedientes en la base de datos: {e}")
         return False
     finally:
-        # Bloque de seguridad para cerrar el cursor y liberar memoria
         if cursor is not None:
             cursor.close()
