@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 
 RUTA_PADRON_RENIEC = "database/padron_reniec.txt"
 
@@ -27,5 +29,52 @@ def digito_verificador_dni(dni, digito_ingresado):
     # Si es que el digito ingresado por el usuario no es igual al digito verificador real entonces le aparece el siguiente mensaje
     if digito_ingresado != digito_real:
         return "El código verificador no coincide con el DNI ingresado."
+    
+    return None
+
+def validar_padron_reniec(dni, emision_texto, caducidad_texto):
+    # Validamos que las fechas ingresadas tengan formato DD/MM/AAAA
+    try:
+        datetime.strptime(emision_texto.strip(), "%d/%m/%Y")
+        fecha_caducidad = datetime.strptime(caducidad_texto.strip(), "%d/%m/%Y").date()
+    except ValueError:
+        return "Formato de fecha inválido. Use el formato DD/MM/AAAA."
+    
+    # Leer el archivo de padrón RENIEC y cargar en arreglos paralelos (DNI, fecha de emisión, fecha de caducidad)
+    if not os.path.exists(RUTA_PADRON_RENIEC):
+        return "El archivo de padrón RENIEC no existe."
+    
+    dnis = []
+    emisiones = []
+    caducidades = []
+    
+    with open(RUTA_PADRON_RENIEC, "r", encoding="utf-8") as archivo:
+        for linea in archivo:
+            linea_limpia = linea.strip()
+            if linea_limpia != "":
+                partes = linea_limpia.split(";")
+                dnis.append(partes[0])
+                emisiones.append(partes[1])
+                caducidades.append(partes[2])
+                
+    # Buscamos el DNI en el arreglo de DNIs y obtenemos el índice correspondiente            
+    indice_encontrador = -1
+    for i in range(len(dnis)):
+        if dnis[i] == dni:
+            indice_encontrador = i
+            break
+    # Si no se encuentra el DNI en el padrón, retornamos un mensaje indicando que no se encuentra
+    if indice_encontrador == -1:
+        return f"El DNI {dni} no se encuentra en el padrón RENIEC."
+    
+    # Comparamos las fechas de emisión y caducidad con las del padrón RENIEC
+    if (
+        emisiones[indice_encontrador].strip() != emision_texto.strip() or
+        caducidades[indice_encontrador].strip() != caducidad_texto.strip()
+    ):
+        return f"La fecha de emisión o caducidad no coincide con el padrón RENIEC para el DNI {dni}."
+    
+    if fecha_caducidad < datetime.now().date():
+        return f"El DNI {dni} ha caducado según el padrón RENIEC."
     
     return None
