@@ -213,7 +213,7 @@ def gestionar_personal_areas(usuario):
             return
 
         # Informar que la solicitud fue confirmada
-        print("\nCambio de area confirmado.")
+       print("\nSolicitud confirmada. Procesando cambio de area...")
 
         
         # Preparar la consulta para actualizar el area del trabajador
