@@ -1,6 +1,6 @@
 from solicitudes.extra import titulo_menu, ROL_ADMIN
 from database.conexion_bd import conectar_bd
-from database.consultas_bd import consulta_reporte_tramites
+from database.consultas_bd import consultar_tramites
 
 # Ordenamiento burbuja en base a un campo específico indicado
 def rep_ordenar_burbuja(lista, campo, descendente):
@@ -110,3 +110,90 @@ def rep_mostrar_tabla(tramites):
     #Mostrar el total de tramites listados
     print("-" * 100)
     print(f"Total de trámites: {len(tramites)}")
+
+
+#Función principal del reporte que se ejecuta desde el menú del administrador
+def menu_reportes(usuario):
+
+    #Se valida que el usuario tenga el rol de administrador para permitirle el acceso
+    if usuario["id_rol"] != ROL_ADMIN:
+        print("No tiene permiso para ver los reportes.")
+        return
+
+    #Se establece la conexión con la base de datos
+    conexion = conectar_bd()
+    
+    #Si la conexión falla, se notifica y se interrumpe la ejecución
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    #Se utiliza un bloque with para asegurar que la conexión se cierre sola al terminar la consulta
+    with conexion:
+        tramites = consultar_tramites(conexion)
+
+    #Si no existen registros obtenidos, se muestra un mensaje informativo y se sale
+    if len(tramites) == 0:
+        titulo_menu("Reportes")
+        print("No hay datos para mostrar.")
+        return
+
+    #Se establecen los valores iniciales: sin filtros activos y ordenados por fecha ascendente
+    filtro_campo = None
+    filtro_valor = None
+    orden = "1"
+
+    #Bucle principal para mantener la interactividad del módulo de reportes
+    while True:
+        #Se aplica el filtro actual sobre la lista base de trámites
+        vista = rep_filtrar(tramites, filtro_campo, filtro_valor)
+        
+        #Se determina el criterio de ordenamiento según la opción seleccionada
+        if orden == "1":
+            texto_orden = "Fecha (más antiguo primero)"
+            vista = rep_ordenar_burbuja(vista, "fecha_registro", False)
+        elif orden == "2":
+            texto_orden = "Fecha (más reciente primero)"
+            vista = rep_ordenar_burbuja(vista, "fecha_registro", True)
+        else:
+            texto_orden = "Área (A-Z)"
+            vista = rep_ordenar_burbuja(vista, "area", False)
+
+        #Se dibuja el título y el resumen del estado actual de filtros y orden
+        titulo_menu("Reportes de trámites")
+        if filtro_campo is None:
+            print("Filtro: ninguno")
+        else:
+            print(f"Filtro: {filtro_campo} = {filtro_valor}")
+        print(f"Orden: {texto_orden}\n")
+        
+        #Se imprime la tabla con los datos procesados en memoria
+        rep_mostrar_tabla(vista)
+
+        #Se despliegan las opciones de control del menú
+        print("\n 1. Ver todos")
+        print(" 2. Filtrar por área")
+        print(" 3. Filtrar por estado")
+        print(" 4. Cambiar orden")
+        print(" 5. Volver al menú")
+        opcion = input("\nSeleccione una opción: ").strip()
+
+        #Se evalúa la opción elegida por el usuario para modificar la vista o salir
+        if opcion == "1":
+            filtro_campo = None
+            filtro_valor = None
+        elif opcion == "2" or opcion == "3":
+            campo_filtro = "area" if opcion == "2" else "estado"
+            valor = rep_elegir_valor(tramites, campo_filtro)
+            if valor is not None:
+                filtro_campo = campo_filtro
+                filtro_valor = valor
+        elif opcion == "4":
+            nuevo_orden = rep_elegir_orden()
+            if nuevo_orden is not None:
+                orden = nuevo_orden
+        elif opcion == "5":
+            return
+        else:
+            input("\nOpción no válida. Presione Enter para reintentar.")
+
