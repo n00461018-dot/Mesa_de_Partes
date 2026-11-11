@@ -2,8 +2,6 @@ from solicitudes.extra import titulo_menu, ROL_ADMIN
 from database.conexion_bd import conectar_bd
 from database.consultas_bd import consulta_reporte_tramites
 
-
-
 # Ordenamiento burbuja en base a un campo específico indicado
 def rep_ordenar_burbuja(lista, campo, descendente):
     ordenada = lista[:]
@@ -27,7 +25,6 @@ def rep_ordenar_burbuja(lista, campo, descendente):
 
     return ordenada
 
-
 #Funcion para devolver una lista nueva solo con los registros cuyo campo coincide con el valor
 def rep_filtrar(lista, campo, valor):
     filtrados = []
@@ -35,7 +32,6 @@ def rep_filtrar(lista, campo, valor):
         if campo is None or registro[campo] == valor:
             filtrados.append(registro)
     return filtrados
-
 
 #Funcion para mostrar los valores distintos de un campo y devuelve el escogido
 def rep_elegir_valor(lista, campo):
@@ -70,7 +66,6 @@ def rep_elegir_valor(lista, campo):
     if eleccion != "0":
         input("\nOpción no válida. Presione Enter para continuar.")
     return None
-
 
 #Funcion para mostrar las opciones de orden para el reporte y devuelve el valor escogido
 def rep_elegir_orden():
