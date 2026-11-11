@@ -31,7 +31,6 @@ def _mostrar_tabla_expedientes(expedientes):
     print("-" * 96)
     print(f"Total de expedientes listados: {len(expedientes)}")
 
-
 def buscar_expedientes_todas_las_areas(conexion, usuario):
     """
     Función principal para buscar expedientes de todas las áreas.
@@ -41,7 +40,7 @@ def buscar_expedientes_todas_las_areas(conexion, usuario):
     if usuario.get("id_rol") != 1:
         print("\n[ACCESO DENEGADO] No tienes permisos de Administrador para realizar esta búsqueda global.")
         return
-
+    
     titulo_menu("Búsqueda Global de Expedientes")
     print("Supervisión global de trámites a nivel de toda la municipalidad.\n")
     
@@ -66,7 +65,6 @@ def buscar_expedientes_todas_las_areas(conexion, usuario):
     # Mostramos los expedientes usando la tabla formateada
     print(f"\n[OK] Se encontraron {len(resultados)} coincidencia(s):\n")
     _mostrar_tabla_expedientes(resultados)
-
 
 def _consultar_todos_los_expedientes_bd(conexion, filtro_texto=""):
     """
@@ -96,7 +94,6 @@ def _consultar_todos_los_expedientes_bd(conexion, filtro_texto=""):
             LEFT JOIN ciudadano c ON e.id_ciudadano = c.id_ciudadano
             LEFT JOIN usuario u ON c.id_usuario = u.id_usuario
         """
-        
         parametros = []
         
         # Si el administrador ingresa texto, agregamos la cláusula WHERE con LIKE
@@ -118,7 +115,7 @@ def _consultar_todos_los_expedientes_bd(conexion, filtro_texto=""):
         cursor.execute(sql, tuple(parametros))
         
         return cursor.fetchall()
-
+    
     except Error as e:
         print(f"Error al consultar los expedientes en la base de datos: {e}")
         return False
