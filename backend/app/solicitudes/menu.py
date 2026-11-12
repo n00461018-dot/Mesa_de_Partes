@@ -2,7 +2,13 @@ from solicitudes.extra import titulo_menu
 from solicitudes.ciudadanos import menu_ciudadanos
 from database.conexion_bd import conectar_bd
 from seguimiento.routes import menu_seguimiento, menu_cambio_estado
-from seguimiento.derivacion import derivar_expediente_area
+from seguimiento.derivacion import menu_derivar
+from solicitudes.registrardocumento import registrar_documento
+from solicitudes.tramites import registrar_tramite
+from solicitudes.gestionar_personal import gestionar_personal_areas
+from solicitudes.reportes import menu_reportes
+from solicitudes.Expedientes_areas import buscar_expedientes_todas_las_areas
+
 # FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
 def ejecutar_seguimiento(usuario):
 
@@ -24,31 +30,10 @@ def ejecutar_seguimiento(usuario):
     finally:
         conexion.close()
 
-
 # FUNCIÓN PARA CAMBIAR EL ESTADO DE UN EXPEDIENTE
 def ejecutar_cambio_estado(usuario):
 
-# FUNCIÓN PARA DERIVAR EXPEDIENTES ENTRE ÁREAS
- def ejecutar_derivacion(usuario):
-    conexion = conectar_bd()
-
-    if conexion is None:
-        print("No se pudo conectar a la base de datos.")
-        return
-
-    try:
-        derivar_expediente_area(
-            conexion,
-            usuario["id_usuario"]
-        )
-
-    except Exception as error:
-        print("Error en la derivación:", error)
-
-    finally:
-        conexion.close()
-
-    # Solo administrador y trabajador
+    # Solo administrador y trabajador pueden cambiar estados
     if usuario["id_rol"] not in (1, 2):
         print("No tiene permiso para cambiar estados.")
         return
@@ -90,6 +75,8 @@ def opciones_rol(id_rol):
         return [
             "Registrar trámite",
             "Derivar trámites",
+            "Cambio de estado",
+            "Seguimiento de expediente",
             "Registrar personal",
             "Gestionar ciudadanos",
             "Gestionar personal y áreas",
@@ -102,33 +89,37 @@ def opciones_rol(id_rol):
             "Registrar trámite",
             "Bandeja de mi área",
             "Buscar trámites",
+            "Seguimiento de expediente",
+            "Cambio de estado",
             "Derivar trámites",
             "Cerrar sesión",
         ]
     elif id_rol == 3:  # Ciudadano
         return [
             "Registrar trámite",
+            "Seguimiento de expediente",
             "Mis trámites",
             "Cerrar sesión",
         ]
     return []
 
-
 # Diccionario con funciones de prueba para cada opción
 funciones_menu = {
 
-        "Registrar trámite": "Ingresar el nombre de la funcion",
-        "Derivar trámites": lambda conexion, usuario: derivar_expediente_area(conexion, usuario['id_usuario']),
+        #"Registrar trámite": registrar_documento,
+        "Registrar trámite": registrar_tramite,
+        "Derivar trámites": menu_derivar,
         "Registrar personal": "Ingresar el nombre de la funcion",
         "Gestionar ciudadanos":menu_ciudadanos,
-        "Gestionar personal y áreas": "Ingresar el nombre de la funcion",
-        "Reportes (trámites por área y estado)": "Ingresar el nombre de la funcion",
-        "Buscar trámites de todas las áreas": "Ingresar el nombre de la funcion",
+        "Gestionar personal y áreas": gestionar_personal_areas,
+        "Reportes (trámites por área y estado)": menu_reportes,
+        "Buscar trámites de todas las áreas": buscar_expedientes_todas_las_areas,
         "Bandeja de mi área": "Ingresar el nombre de la funcion",
         "Buscar trámites": "Ingresar el nombre de la funcion",
-        "Mis trámites": "Ingresar el nombre de la funcion"
+        "Mis trámites": "Ingresar el nombre de la funcion",
+        "Seguimiento de expediente": ejecutar_seguimiento,
+        "Cambio de estado": ejecutar_cambio_estado,
     }
-
 
 #MENÚ DINÁMICO SEGÚN EL ROL
 
@@ -156,12 +147,9 @@ def ejecutar_menu(usuario):
             print(f"Área: {usuario['nombre_area']}")
         print("-" * 50)
 
-
         #Se imprimen las opciones numeradas desde el número 1 (i+1)
         for i in range(len(opciones)):
             print(f" {i + 1}. {opciones[i]}")
-
-
 
         #Se pide la opción y se valida que sea un número dentro del rango
         eleccion = input("\nSeleccione una opción: ").strip()
@@ -173,7 +161,6 @@ def ejecutar_menu(usuario):
             #Se regresa al inicio del Bucle
             continue
 
-
         #La última opción siempre es Cerrar sesión: Se vuelve al login
         numero = int(eleccion)
         if numero == len(opciones):
@@ -182,12 +169,24 @@ def ejecutar_menu(usuario):
             input("\nPresione Enter para continuar.")
             return
 
-        #Cualquier otra opción busca su función en el diccionario
+        # Cualquier otra opción busca su función en el diccionario
         opcion_seleccionada = opciones[numero - 1]
         funcion_menu = funciones_menu.get(opcion_seleccionada)
 
         if callable(funcion_menu):
-            funcion_menu()
+            if opcion_seleccionada in (
+                "Registrar trámite",
+                "Derivar trámites",
+                "Seguimiento de expediente",
+                "Cambio de estado",
+                "Gestionar personal y áreas",
+                "Reportes (trámites por área y estado)",
+                "Buscar trámites de todas las áreas"
+            ):
+                funcion_menu(usuario)
+                input("\nPresione Enter para regresar al menú.")
+            else:
+                funcion_menu()
         else:
             titulo_menu(opcion_seleccionada)
             print(f"[Pruebas] {funcion_menu}")

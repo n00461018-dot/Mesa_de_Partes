@@ -1,28 +1,33 @@
 from mysql.connector import Error
-from solicitudes.extra import titulo_menu
+from solicitudes.extra import titulo_menu, validar_dni
 from database.conexion_bd import conectar_bd
+from database.reniec import digito_verificador_dni, validar_padron_reniec
 
 
 # ==============================================================================
 # VALIDACIONES DE FORMATO Y DUPLICADOS
 # ==============================================================================
 
-def validar_formato_ciudadano(dni, nombre, apellido, correo, contrasena, telefono):
+def validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono):
     # Verificar que los campos obligatorios no estén vacíos
-    if (
-        dni == ""
-        or nombre == ""
-        or apellido == ""
-        or correo == ""
-        or contrasena == ""
-        or telefono == ""
-    ):
+    if not all([dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono]):
         print("\n[!] Error: Todos los campos obligatorios deben ser completados.")
         return False
 
-    # En la BD el DNI tiene 8 dígitos numéricos
-    if not (dni.isdigit() and len(dni) == 8):
-        print("\n[!] Formato inválido: El DNI debe contener exactamente 8 dígitos numéricos.")
+    # Reutilizamos función validar_dni de solicitudes/extra.py para la validación del DNI
+    error_dni = validar_dni(dni)
+    if error_dni is not None:
+        print(f"\n[!] Formato inválido: {error_dni}")
+        return False
+    
+    error_digito = digito_verificador_dni(dni, digito_verificador)
+    if error_digito is not None:
+        print(f"\n[!] Verificación fallida: {error_digito}")
+        return False
+    
+    error_padron = validar_padron_reniec(dni, fecha_emision, fecha_caducidad)
+    if error_padron is not None:
+        print(f"\n[!] Validación RENIEC fallida: {error_padron}")
         return False
 
     # El correo debe contener un @, un punto (.), sin espacios y al menos 6 caracteres
@@ -76,11 +81,7 @@ def verificar_duplicado(dni, correo):
             cursor.close()
         conexion.close()
 
-
-# ==============================================================================
-# FUNCIONES DE BASE DE DATOS (REGISTRAR Y CONSULTAR CIUDADANOS)
-# ==============================================================================
-
+# Función para registrar el ciudadno en la BD
 def registrar_ciudadano_bd(dni, nombre, apellido, correo, contrasena, telefono, direccion):
     # Inserta primero en 'usuario' (id_rol = 3 para Ciudadano) y luego en 'ciudadano'
     conexion = conectar_bd()
@@ -123,7 +124,7 @@ def registrar_ciudadano_bd(dni, nombre, apellido, correo, contrasena, telefono, 
             cursor.close()
         conexion.close()
 
-
+# Función para consultar el ciudadano utilizando su DNI
 def consultar_ciudadano_por_dni(dni):
     # Busca a un ciudadano por su DNI y cuenta sus expedientes registrados
     # Devuelve un diccionario con los datos, None si no existe o False si hubo error de BD
@@ -186,11 +187,7 @@ def listar_ciudadanos_bd(filtro=""):
             cursor.close()
         conexion.close()
 
-
-# ==============================================================================
-# PANTALLAS INTERACTIVAS DE CONSOLA
-# ==============================================================================
-
+# Función para mostrar todos los datos del ciudadano
 def mostrar_ficha_ciudadano(ciudadano):
     # Imprime de forma ordenada los datos de un ciudadano
     direccion_texto = ciudadano["direccion"] if ciudadano["direccion"] is not None else "No especificada"
@@ -215,6 +212,18 @@ def pantalla_registrar_ciudadano():
 
         dni = input("DNI (8 dígitos): ").strip()
         if dni.lower() == "salir":
+            return
+        
+        digito_verificador = input("Código verificador (9no dígito al costado del DNI): ").strip()
+        if digito_verificador.lower() == "salir":
+            return
+        
+        fecha_emision = input("Fecha de emisión del DNI (DD/MM/AAAA): ").strip()
+        if fecha_emision.lower() == "salir":
+            return
+        
+        fecha_caducidad = input("Fecha de caducidad del DNI (DD/MM/AAAA): ").strip()
+        if fecha_caducidad.lower() == "salir":
             return
 
         nombre = input("Nombres: ").strip()
@@ -242,7 +251,7 @@ def pantalla_registrar_ciudadano():
             return
 
         # 1. Validar el formato de los campos antes de conectar a MySQL
-        if not validar_formato_ciudadano(dni, nombre, apellido, correo, contrasena, telefono):
+        if not validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono):
             input("\nPresione Enter para intentar de nuevo.")
             continue
 
@@ -285,7 +294,7 @@ def pantalla_consultar_ciudadano():
             titulo_menu("Buscar Ciudadano por DNI")
             dni_busqueda = input("Ingrese el DNI de 8 dígitos a consultar: ").strip()
 
-            if not (dni_busqueda.isdigit() and len(dni_busqueda) == 8):
+            if validar_dni(dni_busqueda) is not None:
                 print("\n[!] Formato inválido: El DNI debe tener 8 dígitos numéricos.")
                 input("\nPresione Enter para continuar.")
                 continue

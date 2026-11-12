@@ -2,16 +2,22 @@
 from .service import consultar_seguimiento
 from .estados import TRANSICIONES, actualizar_estado
 
+# FUNCION PARA CONSULTAR EL SEGUIMIENTO DE EXPEDIENTES
 def menu_seguimiento(conexion, id_usuario):
 
-    numero = input(
-        "Ingrese numero de expediente: "
-    ).strip()
+    numero = input("Ingrese numero de expediente: ").strip()
+
+    if not numero:
+        print("Debe ingresar un numero de expediente.")
+        return
 
     try:
         resultado, error = consultar_seguimiento(
             conexion, numero, id_usuario
         )
+
+        # Finalizar la transaccion de lectura
+        conexion.commit()
 
         if error:
             print(error)
@@ -20,7 +26,7 @@ def menu_seguimiento(conexion, id_usuario):
         print("\n===== SEGUIMIENTO =====")
         print("Expediente:", resultado["numero"])
         print("Estado:", resultado["estado"])
-        print("Área:", resultado["area"])
+        print("Area:", resultado["area"])
 
         print("\nHISTORIAL")
 
@@ -28,32 +34,35 @@ def menu_seguimiento(conexion, id_usuario):
             print("----------------------")
             print("Fecha:", movimiento["fecha"])
             print("Estado:", movimiento["estado"])
-            # Ciudadanos no reciben observaciones internas.
+
             if "observacion" in movimiento:
-                print("Observación:", movimiento["observacion"])
+                print("Observacion:", movimiento["observacion"])
+
             if "nombre" in movimiento:
-                print("Responsable:", movimiento["nombre"],
-                      movimiento["apellido"])
+                print(
+                    "Responsable:",
+                    movimiento["nombre"],
+                    movimiento["apellido"]
+                )
 
     except Exception as error:
-        print("Error al consultar:", error)
+        conexion.rollback()
+        print("Error al consultar el seguimiento:", error)
 
 
-# Importamos las funciones de cambio de estado
-
-
-
-# Funcion del menu de cambio de estado asistido
+# FUNCION PARA CAMBIAR EL ESTADO DEL EXPEDIENTE
 def menu_cambio_estado(conexion, id_usuario):
 
-    # Solicitamos el numero de expediente
-    numero = input("Numero del expediente: ").strip()
+    numero = input("Ingrese numero de expediente: ").strip()
 
-    # Creamos el cursor para consultar MySQL
+    if not numero:
+        print("Debe ingresar un numero de expediente.")
+        return
+
     cursor = conexion.cursor(dictionary=True)
 
     try:
-        # Buscamos el expediente y su area responsable
+        # Consultar el expediente y su area responsable
         cursor.execute("""
             SELECT e.estado, a.nombre AS area
             FROM expediente e
@@ -63,28 +72,38 @@ def menu_cambio_estado(conexion, id_usuario):
 
         expediente = cursor.fetchone()
 
+        # Finalizar la transaccion de lectura
+        conexion.commit()
+
+    except Exception as error:
+        conexion.rollback()
+        print("Error al consultar el expediente:", error)
+        return
+
     finally:
         cursor.close()
 
-    # Verificamos que exista el expediente
+    # Verificar si existe el expediente
     if expediente is None:
         print("Expediente no encontrado.")
         return
 
     estado = expediente["estado"]
 
-    # Mostramos el estado actual
+    # Mostrar los datos del expediente
     print("\n===== EXPEDIENTE ENCONTRADO =====")
+    print("Numero:", numero)
     print("Estado actual:", estado)
     print("Area responsable:", expediente["area"])
 
-    # Consultamos las acciones permitidas
+    # Obtener las acciones permitidas
     opciones = TRANSICIONES.get(estado, {})
 
     if not opciones:
-        print("No hay cambios disponibles.")
+        print("\nNo hay cambios de estado disponibles.")
         return
 
+    # Mostrar las acciones disponibles
     print("\n===== ACCIONES DISPONIBLES =====")
 
     for clave, datos in opciones.items():
@@ -92,8 +111,8 @@ def menu_cambio_estado(conexion, id_usuario):
 
     print("0 - Cancelar")
 
-    # El empleado selecciona una accion
-    accion = input("Seleccione una accion: ").strip()
+    # Solicitar la accion
+    accion = input("\nSeleccione una accion: ").strip()
 
     if accion == "0":
         print("Operacion cancelada.")
@@ -103,19 +122,33 @@ def menu_cambio_estado(conexion, id_usuario):
         print("Opcion no valida.")
         return
 
-    # El sistema determina el nuevo estado
+    # Obtener la descripcion y el nuevo estado
     descripcion, nuevo_estado = opciones[accion]
 
-    print("\nNuevo estado:", nuevo_estado)
+    print("\nAccion seleccionada:", descripcion)
+    print("Nuevo estado:", nuevo_estado)
 
-    # Registramos una observacion
+    # Solicitar observacion
     observacion = input(
-        "Ingrese observacion: "
+        "\nIngrese observacion (0 para cancelar): "
     ).strip()
 
-    # Solicitamos confirmacion
+    if observacion == "0":
+        print("Operacion cancelada.")
+        return
+
+    # Validar la observacion
+    if len(observacion) > 150:
+        print("La observacion no debe superar 150 caracteres.")
+        return
+
+    if nuevo_estado == "Observado" and not observacion:
+        print("Debe indicar el motivo de la observacion.")
+        return
+
+    # Confirmar el cambio
     confirmar = input(
-        "Confirmar cambio (S/N): "
+        "\n¿Confirmar cambio de estado? (S/N): "
     ).strip().upper()
 
     if confirmar != "S":
@@ -123,7 +156,7 @@ def menu_cambio_estado(conexion, id_usuario):
         return
 
     try:
-        # Actualizamos el estado y registramos el movimiento
+        # Actualizar el expediente y registrar el seguimiento
         resultado = actualizar_estado(
             conexion,
             numero,
@@ -132,7 +165,7 @@ def menu_cambio_estado(conexion, id_usuario):
             id_usuario
         )
 
-        print(resultado)
+        print("\n" + resultado)
 
     except Exception as error:
-        print("Error al actualizar:", error)
+        print("Error al actualizar el estado:", error)
