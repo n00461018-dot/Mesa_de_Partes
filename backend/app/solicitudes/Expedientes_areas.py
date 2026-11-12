@@ -37,6 +37,7 @@ def buscar_expedientes_todas_las_areas(usuario):
     Función principal para buscar expedientes de todas las áreas.
     Valida el rol de Administrador y gestiona su propia conexión a la BD.
     """
+    # [T.D] Desarrollar la función de búsqueda global sin filtros restrictivos de área para el rol de administrador.
     if usuario.get("id_rol") != 1:
         print("\n[ACCESO DENEGADO] No tienes permisos de Administrador para realizar esta búsqueda global.")
         return
@@ -57,7 +58,7 @@ def buscar_expedientes_todas_las_areas(usuario):
         if resultados is False:
             print("\n[!] Ocurrió un error al consultar la base de datos.")
             return
-            
+        # [T.D] Implementar una validación condicional que compruebe si la consulta arrojó registros para mostrar el mensaje de "sin resultados" en caso de estar vacía.
         if not resultados:
             print("\n[!] No se encontraron expedientes coincidentes en el sistema.")
             return
@@ -78,6 +79,7 @@ def _consultar_todos_los_expedientes_bd(conexion, filtro_texto=""):
         # Se inicializa el cursor configurado en diccionario (dictionary=True)
         cursor = conexion.cursor(dictionary=True)
         
+        # [T.D] Obtener el nombre del área responsable y el estado actual del trámite.
         # Consulta SQL base uniendo las tablas clave del sistema sin restricciones de área
         sql = """
             SELECT 
@@ -97,7 +99,7 @@ def _consultar_todos_los_expedientes_bd(conexion, filtro_texto=""):
             LEFT JOIN usuario u ON c.id_usuario = u.id_usuario
         """
         parametros = []
-        
+        # [T.D] Programar consultas SQL para buscar por número de expediente o Usuario en la base de datos.
         # Si el administrador ingresa texto, agregamos la cláusula WHERE con LIKE
         if filtro_texto:
             sql += """ 
