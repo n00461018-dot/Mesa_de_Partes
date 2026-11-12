@@ -401,10 +401,8 @@ def registrar_tramite(usuario):
                     f"\n[OK] Tramite registrado. "
                     f"Numero de expediente: {codigo_tramite}"
                 )
-                print(
-                    f"Notificacion registrada para "
-                    f"{ciudadano['correo']}."
-                )
+
+                enviar_copia_tramite_correo(ciudadano['correo'], codigo_tramite, asunto)
 
         else:
             #Si no se confirma con S se cancela la operación
