@@ -7,6 +7,7 @@ from solicitudes.registrardocumento import registrar_documento
 from solicitudes.tramites import registrar_tramite
 from solicitudes.gestionar_personal import gestionar_personal_areas
 from solicitudes.reportes import menu_reportes
+from solicitudes.Expedientes_areas import buscar_expedientes_todas_las_areas
 
 # FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
 def ejecutar_seguimiento(usuario):
@@ -112,7 +113,7 @@ funciones_menu = {
         "Gestionar ciudadanos":menu_ciudadanos,
         "Gestionar personal y áreas": gestionar_personal_areas,
         "Reportes (trámites por área y estado)": menu_reportes,
-        "Buscar trámites de todas las áreas": "Ingresar el nombre de la funcion",
+        "Buscar trámites de todas las áreas": buscar_expedientes_todas_las_areas,
         "Bandeja de mi área": "Ingresar el nombre de la funcion",
         "Buscar trámites": "Ingresar el nombre de la funcion",
         "Mis trámites": "Ingresar el nombre de la funcion",
@@ -179,7 +180,8 @@ def ejecutar_menu(usuario):
                 "Seguimiento de expediente",
                 "Cambio de estado",
                 "Gestionar personal y áreas",
-                "Reportes (trámites por área y estado)"
+                "Reportes (trámites por área y estado)",
+                "Buscar trámites de todas las áreas"
             ):
                 funcion_menu(usuario)
                 input("\nPresione Enter para regresar al menú.")
