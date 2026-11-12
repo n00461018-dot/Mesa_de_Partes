@@ -3,6 +3,7 @@ from mysql.connector import Error
 from database.conexion_bd import *
 from database.consultas_bd import *
 from solicitudes.extra import *
+from notificaciones.notificacion import enviar_copia_tramite_correo
 
 #Declarar la constante del id de area inicial y estado inicial del trámite
 ID_AREA_MESA_PARTES = 1
