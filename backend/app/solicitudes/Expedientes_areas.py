@@ -1,6 +1,8 @@
 # Módulo para la gestión y búsqueda global de expedientes (Solo Administrador)
 from mysql.connector import Error
+from database.conexion_bd import conectar_bd
 from solicitudes.extra import titulo_menu
+
 
 def _mostrar_tabla_expedientes(expedientes):
     """
@@ -31,40 +33,42 @@ def _mostrar_tabla_expedientes(expedientes):
     print("-" * 96)
     print(f"Total de expedientes listados: {len(expedientes)}")
 
-def buscar_expedientes_todas_las_areas(conexion, usuario):
+def buscar_expedientes_todas_las_areas(usuario):
     """
     Función principal para buscar expedientes de todas las áreas.
-    Valida primero que el usuario tenga rol de Administrador.
+    Valida el rol de Administrador y gestiona su propia conexión a la BD.
     """
-    #  Validación de seguridad alineada al estándar del proyecto (id_rol == 1 para Administrador)
     if usuario.get("id_rol") != 1:
         print("\n[ACCESO DENEGADO] No tienes permisos de Administrador para realizar esta búsqueda global.")
         return
-    
-    titulo_menu("Búsqueda Global de Expedientes")
-    print("Supervisión global de trámites a nivel de toda la municipalidad.\n")
-    
-    # Solicitamos el criterio de búsqueda al administrador
-    filtro_texto = input("Ingrese N° de expediente, DNI, área o término (Enter para ver todos): ").strip()
 
-    print("\nProcesando búsqueda global...")
-    
-    # Consultamos la base de datos aplicando el filtro de texto
-    resultados = _consultar_todos_los_expedientes_bd(conexion, filtro_texto)
-    
-    # Validamos si ocurrió un error de MySQL
-    if resultados is False:
-        print("\n[!] Ocurrió un error al consultar la base de datos.")
+    conexion = conectar_bd()
+    if conexion is None:
+        print("\n[!] No se pudo conectar a la base de datos.")
         return
+
+    try:
+        titulo_menu("Búsqueda Global de Expedientes")
+        print("Supervisión global de trámites a nivel de toda la municipalidad.\n")
         
-    # Validamos la condición de lista vacía (Criterio de Aceptación Q.A.)
-    if not resultados:
-        print("\n[!] No se encontraron expedientes coincidentes en el sistema.")
-        return
+        filtro_texto = input("Ingrese N° de expediente, DNI, área o término (Enter para ver todos): ").strip()
+        print("\nProcesando búsqueda global...")
+        
+        resultados = _consultar_todos_los_expedientes_bd(conexion, filtro_texto)
+        
+        if resultados is False:
+            print("\n[!] Ocurrió un error al consultar la base de datos.")
+            return
+            
+        if not resultados:
+            print("\n[!] No se encontraron expedientes coincidentes en el sistema.")
+            return
 
-    # Mostramos los expedientes usando la tabla formateada
-    print(f"\n[OK] Se encontraron {len(resultados)} coincidencia(s):\n")
-    _mostrar_tabla_expedientes(resultados)
+        print(f"\n[OK] Se encontraron {len(resultados)} coincidencia(s):\n")
+        _mostrar_tabla_expedientes(resultados)
+
+    finally:
+        conexion.close()
 
 def _consultar_todos_los_expedientes_bd(conexion, filtro_texto=""):
     """
