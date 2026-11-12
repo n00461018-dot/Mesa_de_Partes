@@ -3,7 +3,6 @@ from mysql.connector import Error
 from database.conexion_bd import conectar_bd
 from solicitudes.extra import titulo_menu
 
-
 def _mostrar_tabla_expedientes(expedientes):
     """
     Función auxiliar para mostrar los expedientes en un formato tabular 
@@ -41,12 +40,11 @@ def buscar_expedientes_todas_las_areas(usuario):
     if usuario.get("id_rol") != 1:
         print("\n[ACCESO DENEGADO] No tienes permisos de Administrador para realizar esta búsqueda global.")
         return
-
+    
     conexion = conectar_bd()
     if conexion is None:
         print("\n[!] No se pudo conectar a la base de datos.")
         return
-
     try:
         titulo_menu("Búsqueda Global de Expedientes")
         print("Supervisión global de trámites a nivel de toda la municipalidad.\n")
