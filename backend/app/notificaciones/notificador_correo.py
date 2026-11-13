@@ -39,3 +39,4 @@ class NotificadorCorreo:
             return {"exito": False, "mensaje": f"Error al guardar en BD: {str(e)}"}
         finally:
             cursor.close()
+            
