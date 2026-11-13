@@ -1,7 +1,7 @@
 from mysql.connector import Error
 from solicitudes.extra import titulo_menu, validar_dni
 from database.conexion_bd import conectar_bd
-from database.reniec import digito_verificador_dni, validar_padron_reniec
+from database.reniec import validar_padron_reniec
 
 
 # ==============================================================================
@@ -20,16 +20,6 @@ def validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_cadu
         print(f"\n[!] Formato inválido: {error_dni}")
         return False
     
-    error_digito = digito_verificador_dni(dni, digito_verificador)
-    if error_digito is not None:
-        print(f"\n[!] Verificación fallida: {error_digito}")
-        return False
-    
-    error_padron = validar_padron_reniec(dni, fecha_emision, fecha_caducidad)
-    if error_padron is not None:
-        print(f"\n[!] Validación RENIEC fallida: {error_padron}")
-        return False
-
     # El correo debe contener un @, un punto (.), sin espacios y al menos 6 caracteres
     es_correo = (
         "@" in correo
@@ -263,6 +253,12 @@ def pantalla_registrar_ciudadano():
             return
         if duplicado is True:
             input("\nPresione Enter para intentar con otros datos.")
+            continue
+        
+        error_padron = validar_padron_reniec(dni, digito_verificador, fecha_emision, fecha_caducidad)
+        if error_padron is not None:
+            print(f"\n[!] Validación RENIEC fallida: {error_padron}")
+            input("\nPresione Enter para intentar de nuevo.")
             continue
 
         # 3. Guardar en las tablas 'usuario' y 'ciudadano'
