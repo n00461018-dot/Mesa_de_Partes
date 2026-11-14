@@ -178,6 +178,7 @@ def ejecutar_menu(usuario):
         if callable(funcion_menu):
             if opcion_seleccionada in (
                 "Registrar trámite",
+                "Bandeja de mi area",
                 "Derivar trámites",
                 "Seguimiento de expediente",
                 "Cambio de estado",
