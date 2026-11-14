@@ -1,4 +1,16 @@
-from solicitudes.extra import validar_lista_vacia
+
+# Permite capturar y manejar errores relacionados con MySQL.
+from mysql.connector import Error
+
+# Importa funciones auxiliares para validar listas vacías y mostrar títulos.
+from solicitudes.extra import validar_lista_vacia, titulo_menu
+
+# Importa la función que establece la conexión con la base de datos MySQL.
+from database.conexion_bd import conectar_bd
+
+# Importa la consulta SQL que obtiene los expedientes del área del trabajador autenticado.
+from database.consultas_bd import consultar_expedientes_mi_area
+
 
 
 #Implementar la función principal encargada de procesar la lista de trámites obtenida de la BD usando las funciones validar_lista_vacia y bandeja_mostrar_tabla
