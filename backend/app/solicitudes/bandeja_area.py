@@ -17,6 +17,48 @@ from database.consultas_bd import consultar_expedientes_mi_area
 
 
 
+# Función principal que muestra los expedientes del área del trabajador autenticado.
+def bandeja_mi_area(usuario):
+
+    # Verifica que el usuario tenga el rol de trabajador.
+    if usuario["id_rol"] != 2:
+        print("Acceso denegado. Solo trabajadores.")
+        return
+
+    # Establece la conexión con la base de datos MySQL.
+    conexion = conectar_bd()
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    try:
+        # Muestra el encabezado de la bandeja.
+        titulo_menu("Bandeja de mi área")
+
+        # Obtiene los expedientes del área del usuario autenticado.
+        expedientes = consultar_expedientes_mi_area(
+            conexion, usuario["id_usuario"]
+        )
+
+        # Verifica si la consulta devolvió expedientes.
+        if validar_lista_vacia(
+            expedientes, "No hay expedientes en tu área."
+        ):
+            return
+
+        # Muestra los expedientes utilizando la tabla existente.
+        bandeja_mostrar_tabla(expedientes)
+
+    # Captura los errores que puedan ocurrir en MySQL.
+    except Error as error:
+        print(f"Error al consultar la bandeja: {error}")
+
+    finally:
+        # Cierra la conexión para liberar recursos.
+        conexion.close()
+
+
+
 
 #Funcion para mostrar en pantalla una tabla con formatos y valores obtenidos de una lista de diccionarios como parámetro
 def bandeja_mostrar_tabla(expedientes):
