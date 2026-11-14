@@ -116,7 +116,7 @@ funciones_menu = {
         "Gestionar personal y áreas": gestionar_personal_areas,
         "Reportes (trámites por área y estado)": menu_reportes,
         "Buscar trámites de todas las áreas": buscar_expedientes_todas_las_areas,
-        "Bandeja de mi área": "Ingresar el nombre de la funcion",
+        "Bandeja de mi área": bandeja_mi_area,
         "Buscar trámites": "Ingresar el nombre de la funcion",
         "Mis trámites": "Ingresar el nombre de la funcion",
         "Seguimiento de expediente": ejecutar_seguimiento,
