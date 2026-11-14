@@ -8,6 +8,8 @@ from solicitudes.tramites import registrar_tramite
 from solicitudes.gestionar_personal import gestionar_personal_areas
 from solicitudes.reportes import menu_reportes
 from solicitudes.Expedientes_areas import buscar_expedientes_todas_las_areas
+from solicitudes.bandeja_area import bandeja_mi_area
+from notificaciones.notificador_correo import menu_respuesta_correo
 
 # FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
 def ejecutar_seguimiento(usuario):
@@ -77,6 +79,7 @@ def opciones_rol(id_rol):
             "Derivar trámites",
             "Cambio de estado",
             "Seguimiento de expediente",
+            "Registrar respuesta por correo",
             "Registrar personal",
             "Gestionar ciudadanos",
             "Gestionar personal y áreas",
@@ -92,6 +95,7 @@ def opciones_rol(id_rol):
             "Seguimiento de expediente",
             "Cambio de estado",
             "Derivar trámites",
+            "Registrar respuesta por correo",
             "Cerrar sesión",
         ]
     elif id_rol == 3:  # Ciudadano
@@ -114,11 +118,12 @@ funciones_menu = {
         "Gestionar personal y áreas": gestionar_personal_areas,
         "Reportes (trámites por área y estado)": menu_reportes,
         "Buscar trámites de todas las áreas": buscar_expedientes_todas_las_areas,
-        "Bandeja de mi área": "Ingresar el nombre de la funcion",
+        "Bandeja de mi área": bandeja_mi_area,
         "Buscar trámites": "Ingresar el nombre de la funcion",
         "Mis trámites": "Ingresar el nombre de la funcion",
         "Seguimiento de expediente": ejecutar_seguimiento,
         "Cambio de estado": ejecutar_cambio_estado,
+        "Registrar respuesta por correo": menu_respuesta_correo,
     }
 
 #MENÚ DINÁMICO SEGÚN EL ROL
@@ -176,9 +181,11 @@ def ejecutar_menu(usuario):
         if callable(funcion_menu):
             if opcion_seleccionada in (
                 "Registrar trámite",
+                "Bandeja de mi área",
                 "Derivar trámites",
                 "Seguimiento de expediente",
                 "Cambio de estado",
+                "Registrar respuesta por correo",
                 "Gestionar personal y áreas",
                 "Reportes (trámites por área y estado)",
                 "Buscar trámites de todas las áreas"
