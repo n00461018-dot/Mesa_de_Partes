@@ -1,3 +1,8 @@
+from solicitudes.extra import validar_lista_vacia
+
+
+#Implementar la función principal encargada de procesar la lista de trámites obtenida de la BD usando las funciones validar_lista_vacia y bandeja_mostrar_tabla
+
 
 
 

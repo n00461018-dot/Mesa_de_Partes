@@ -83,3 +83,13 @@ def extraer_tipo_doc(archivo):
     #Se divide el string con el primer punto encontrado desde la derecha
     #La funcion devuelve la extensión del archivo solicitado
     return archivo.rsplit(".", 1)[1].upper()
+
+#Función reutilizable para validar si una lista está vacía o es nula
+def validar_lista_vacia(lista, mensaje="No se encontraron registros."):
+    #Si la lista  no tiene los requisitos se mostrará un mensaje de aviso
+    if not lista or len(lista) == 0:
+        print("-" * 65)
+        print(f"Aviso: {mensaje}")
+        print("-" * 65)
+        return True
+    return False
