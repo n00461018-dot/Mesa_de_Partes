@@ -8,6 +8,8 @@ from solicitudes.tramites import registrar_tramite
 from solicitudes.gestionar_personal import gestionar_personal_areas
 from solicitudes.reportes import menu_reportes
 from solicitudes.Expedientes_areas import buscar_expedientes_todas_las_areas
+from solicitudes.bandeja_area import bandeja_mi_area
+
 
 # FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
 def ejecutar_seguimiento(usuario):
