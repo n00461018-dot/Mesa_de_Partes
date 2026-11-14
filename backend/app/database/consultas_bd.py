@@ -53,3 +53,36 @@ def consultar_tramites(conexion):
 
         #Se devuelve todos los diccionarios obtenidos en una lista de diccionarios
         return cursor.fetchall()
+    
+
+
+# HU - Bandeja de mi área
+# Obtiene expedientes del área del trabajador autenticado
+def consultar_expedientes_mi_area(conexion, id_usuario):
+    cursor = conexion.cursor(dictionary=True)
+    try:
+        sql = """
+            SELECT
+                e.numero_expediente,
+                CONCAT(uc.nombre, ' ', uc.apellido) AS ciudadano,
+                e.asunto,
+                e.fecha_registro,
+                e.estado
+            FROM expediente e
+            INNER JOIN ciudadano c
+                ON e.id_ciudadano = c.id_ciudadano
+            INNER JOIN usuario uc
+                ON c.id_usuario = uc.id_usuario
+            WHERE e.id_area = (
+                SELECT u.id_area
+                FROM usuario u
+                WHERE u.id_usuario = %s
+                  AND u.id_rol = 2
+                  AND u.id_area IS NOT NULL
+            )
+            ORDER BY e.fecha_registro DESC
+        """
+        cursor.execute(sql, (id_usuario,))
+        return cursor.fetchall()
+    finally:
+        cursor.close()
