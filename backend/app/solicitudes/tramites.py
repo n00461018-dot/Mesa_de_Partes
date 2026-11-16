@@ -438,3 +438,45 @@ def obtener_mis_tramites_bd(conexion, id_usuario):
     finally:
         if cursor is not None:
             cursor.close()
+
+# Función para mostrar en pantalla los trámites del ciudadano autenticado
+def consultar_mis_tramites(usuario):
+    # Validar que el usuario tenga el rol de ciudadano
+    if usuario["id_rol"] != ROL_CIUDADANO:
+        print("No tiene permiso para acceder a esta sección.")
+        return
+
+    # Establecer y validar la conexión con la base de datos
+    conexion = conectar_bd()
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    try:
+        titulo_menu("Mis trámites")
+        tramites = obtener_mis_tramites_bd(conexion, usuario["id_usuario"])
+
+        # Validar si la lista de trámites está vacía
+        if len(tramites) == 0:
+            print("Aún no cuenta con trámites registrados.")
+            return
+
+        # Calcular el ancho dinámico del asunto para no recortar el texto
+        ancho_asunto = max(len(t["asunto"]) for t in tramites)
+        if ancho_asunto < 30:
+            ancho_asunto = 30
+        ancho_linea = 10 + ancho_asunto + 16 + 12 + 9
+
+        # Mostrar encabezado y registros de los trámites del ciudadano
+        print(f"{'N° Exp.':<10} | {'Asunto':<{ancho_asunto}} | {'Fecha':<16} | {'Estado':<12}")
+        print("-" * ancho_linea)
+
+        for t in tramites:
+            fecha = t["fecha_registro"].strftime("%d/%m/%Y %H:%M")
+            print(f"{t['numero_expediente']:<10} | {t['asunto']:<{ancho_asunto}} | {fecha:<16} | {t['estado']:<12}")
+
+        print("-" * ancho_linea)
+        print(f"Total de trámites: {len(tramites)}")
+
+    finally:
+        conexion.close()
