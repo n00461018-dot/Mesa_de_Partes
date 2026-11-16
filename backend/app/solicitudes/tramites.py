@@ -413,13 +413,8 @@ def registrar_tramite(usuario):
         conexion.close()
 
     input("\nPresione Enter para regresar al menú.")
-
-
-# ==============================================================================
-# HU - CONSULTAR MIS TRÁMITES (CIUDADANO)
-# ==============================================================================
-
-# Actividad 1: Función para obtener los trámites registrados por el ciudadano autenticado
+    
+# Función para obtener los trámites registrados por el ciudadano autenticado
 def obtener_mis_tramites_bd(conexion, id_usuario):
     """Obtiene los expedientes asociados al id_usuario del ciudadano autenticado."""
     cursor = None
