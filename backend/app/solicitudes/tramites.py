@@ -413,3 +413,28 @@ def registrar_tramite(usuario):
         conexion.close()
 
     input("\nPresione Enter para regresar al menú.")
+    
+# Función para obtener los trámites registrados por el ciudadano autenticado
+def obtener_mis_tramites_bd(conexion, id_usuario):
+    """Obtiene los expedientes asociados al id_usuario del ciudadano autenticado."""
+    cursor = None
+    try:
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT
+                e.numero_expediente,
+                e.asunto,
+                e.fecha_registro,
+                e.estado
+            FROM expediente e
+            INNER JOIN ciudadano c ON e.id_ciudadano = c.id_ciudadano
+            WHERE c.id_usuario = %s
+            ORDER BY e.fecha_registro DESC
+        """, (id_usuario,))
+        return cursor.fetchall()
+    except Error as e:
+        print(f"\n[!] Error al obtener los trámites del ciudadano: {e}")
+        return []
+    finally:
+        if cursor is not None:
+            cursor.close()
