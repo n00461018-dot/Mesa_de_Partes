@@ -30,7 +30,6 @@ def capturar_valor_busqueda(opcion):
 
         return criterio, valor
 
-
 # [T.D] Crear función con un submenú interactivo donde se seleccione el criterio específico de búsqueda entre código de expediente, asunto, DNI o correo del ciudadano.
 def buscar_tramites_area(usuario):
 
