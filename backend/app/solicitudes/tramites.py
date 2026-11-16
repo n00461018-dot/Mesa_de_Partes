@@ -416,10 +416,12 @@ def registrar_tramite(usuario):
     
 # Función para obtener los trámites registrados por el ciudadano autenticado
 def obtener_mis_tramites_bd(conexion, id_usuario):
-    """Obtiene los expedientes asociados al id_usuario del ciudadano autenticado."""
     cursor = None
     try:
+        # Crear un cursor para devolver los registros como diccionarios
         cursor = conexion.cursor(dictionary=True)
+
+        # Consultar los expedientes asociados al ciudadano autenticado del más reciente al más antiguo
         cursor.execute("""
             SELECT
                 e.numero_expediente,
@@ -433,9 +435,11 @@ def obtener_mis_tramites_bd(conexion, id_usuario):
         """, (id_usuario,))
         return cursor.fetchall()
     except Error as e:
+        # Capturar errores de base de datos y devolver una lista vacía
         print(f"\n[!] Error al obtener los trámites del ciudadano: {e}")
         return []
     finally:
+        # Cerrar el cursor al finalizar la consulta
         if cursor is not None:
             cursor.close()
 
