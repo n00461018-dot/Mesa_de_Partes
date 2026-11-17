@@ -10,7 +10,7 @@ from solicitudes.reportes import menu_reportes
 from solicitudes.Expedientes_areas import buscar_expedientes_todas_las_areas
 from solicitudes.bandeja_area import bandeja_mi_area
 from notificaciones.notificador_correo import menu_respuesta_correo
-
+from solicitudes.tramites import registrar_tramite, consultar_mis_tramites
 
 # FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
 def ejecutar_seguimiento(usuario):
