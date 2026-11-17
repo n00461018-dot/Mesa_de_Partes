@@ -121,7 +121,7 @@ funciones_menu = {
         "Buscar trámites de todas las áreas": buscar_expedientes_todas_las_areas,
         "Bandeja de mi área": bandeja_mi_area,
         "Buscar trámites": "Ingresar el nombre de la funcion",
-        "Mis trámites": "Ingresar el nombre de la funcion",
+        "Mis trámites": consultar_mis_tramites,
         "Seguimiento de expediente": ejecutar_seguimiento,
         "Cambio de estado": ejecutar_cambio_estado,
         "Registrar respuesta por correo": menu_respuesta_correo,
