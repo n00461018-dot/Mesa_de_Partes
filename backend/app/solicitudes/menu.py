@@ -189,7 +189,8 @@ def ejecutar_menu(usuario):
                 "Registrar respuesta por correo",
                 "Gestionar personal y áreas",
                 "Reportes (trámites por área y estado)",
-                "Buscar trámites de todas las áreas"
+                "Buscar trámites de todas las áreas",
+                "Mis trámites"
             ):
                 funcion_menu(usuario)
                 input("\nPresione Enter para regresar al menú.")
