@@ -9,13 +9,22 @@ from database.reniec import validar_padron_reniec
 # ==============================================================================
 
 def validar_correo(correo):
-    # El correo debe contener un @, un punto (.), sin espacios y al menos 6 caracteres
-    return (
-        "@" in correo
-        and "." in correo
-        and " " not in correo
-        and len(correo) >= 6
-    )
+    # Verificar que no tenga espacios, puntos seguidos y que contenga exactamente un @
+    if " " in correo or ".." in correo or correo.count("@") != 1:
+        return False
+
+    usuario_correo, dominio = correo.split("@")
+    # Verificar que exista usuario antes del @ y un punto dentro del dominio
+    if not usuario_correo or usuario_correo.startswith(".") or usuario_correo.endswith(".") or "." not in dominio:
+        return False
+
+    partes_dominio = dominio.split(".")
+    # Verificar que ninguna parte del dominio esté vacía y que la extensión final tenga al menos 2 letras
+    if any(parte == "" for parte in partes_dominio):
+        return False
+
+    extension = partes_dominio[-1]
+    return len(extension) >= 2 and extension.isalpha()
 
 
 def validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono):
