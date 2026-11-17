@@ -8,6 +8,16 @@ from database.reniec import validar_padron_reniec
 # VALIDACIONES DE FORMATO Y DUPLICADOS
 # ==============================================================================
 
+def validar_correo(correo):
+    # El correo debe contener un @, un punto (.), sin espacios y al menos 6 caracteres
+    return (
+        "@" in correo
+        and "." in correo
+        and " " not in correo
+        and len(correo) >= 6
+    )
+
+
 def validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono):
     # Verificar que los campos obligatorios no estén vacíos
     if not all([dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono]):
@@ -19,15 +29,8 @@ def validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_cadu
     if error_dni is not None:
         print(f"\n[!] Formato inválido: {error_dni}")
         return False
-    
-    # El correo debe contener un @, un punto (.), sin espacios y al menos 6 caracteres
-    es_correo = (
-        "@" in correo
-        and "." in correo
-        and " " not in correo
-        and len(correo) >= 6
-    )
-    if not es_correo:
+
+    if not validar_correo(correo):
         print("\n[!] Formato inválido: Ingrese un correo electrónico válido.")
         return False
 
@@ -39,7 +42,7 @@ def validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_cadu
     return True
 
 
-def verificar_duplicado(dni, correo):
+def verificar_duplicado(dni="", correo=""):
     # Consulta si el DNI o el correo ya existen en la tabla 'usuario'
     # Devuelve True si hay duplicado, False si está disponible o None si hubo error de BD
     conexion = conectar_bd()
@@ -49,14 +52,14 @@ def verificar_duplicado(dni, correo):
     cursor = None
     try:
         cursor = conexion.cursor(dictionary=True)
-        sql = "SELECT dni, correo FROM usuario WHERE dni = %s OR correo = %s"
-        cursor.execute(sql, (dni, correo))
+        sql = "SELECT dni, correo FROM usuario WHERE (dni = %s AND %s != '') OR (correo = %s AND %s != '')"
+        cursor.execute(sql, (dni, dni, correo, correo))
         registro = cursor.fetchone()
 
         if registro is not None:
-            if registro["dni"] == dni:
+            if dni != "" and registro["dni"] == dni:
                 print(f"\n[!] Error: Ya existe un usuario registrado con el DNI {dni}.")
-            elif registro["correo"].lower() == correo.lower():
+            elif correo != "" and registro["correo"].lower() == correo.lower():
                 print(f"\n[!] Error: El correo '{correo}' ya se encuentra registrado.")
             return True
 
@@ -200,18 +203,36 @@ def pantalla_registrar_ciudadano():
         print("Complete los datos del ciudadano (o escriba 'salir' para cancelar).")
         print("-" * 54)
 
-        dni = input("DNI (8 dígitos): ").strip()
-        if dni.lower() == "salir":
-            return
-        
+        while True:
+            dni = input("DNI (8 dígitos): ").strip()
+            if dni.lower() == "salir":
+                return
+
+            # Validar formato del DNI antes de consultar en MySQL
+            error_dni = validar_dni(dni)
+            if error_dni is not None:
+                print(f"\n[!] Formato inválido: {error_dni}\n")
+                continue
+
+            # Verificar inmediatamente en la BD si el DNI ya está registrado
+            duplicado_dni = verificar_duplicado(dni=dni)
+            if duplicado_dni is None:
+                print("\nNo se pudo verificar la información en la base de datos.")
+                input("\nPresione Enter para continuar.")
+                return
+            if duplicado_dni is True:
+                print()
+                continue
+            break
+
         digito_verificador = input("Código verificador (9no dígito al costado del DNI): ").strip()
         if digito_verificador.lower() == "salir":
             return
-        
+
         fecha_emision = input("Fecha de emisión del DNI (DD/MM/AAAA): ").strip()
         if fecha_emision.lower() == "salir":
             return
-        
+
         fecha_caducidad = input("Fecha de caducidad del DNI (DD/MM/AAAA): ").strip()
         if fecha_caducidad.lower() == "salir":
             return
@@ -224,9 +245,26 @@ def pantalla_registrar_ciudadano():
         if apellido.lower() == "salir":
             return
 
-        correo = input("Correo electrónico: ").strip()
-        if correo.lower() == "salir":
-            return
+        while True:
+            correo = input("Correo electrónico: ").strip()
+            if correo.lower() == "salir":
+                return
+
+            # Validar formato del correo antes de consultar en MySQL
+            if not validar_correo(correo):
+                print("\n[!] Formato inválido: Ingrese un correo electrónico válido.\n")
+                continue
+
+            # Verificar inmediatamente en la BD si el correo ya está registrado
+            duplicado_correo = verificar_duplicado(correo=correo)
+            if duplicado_correo is None:
+                print("\nNo se pudo verificar la información en la base de datos.")
+                input("\nPresione Enter para continuar.")
+                return
+            if duplicado_correo is True:
+                print()
+                continue
+            break
 
         contrasena = input("Contraseña: ").strip()
         if contrasena.lower() == "salir":
