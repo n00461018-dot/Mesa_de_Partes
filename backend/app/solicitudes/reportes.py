@@ -98,17 +98,17 @@ def rep_mostrar_tabla(tramites):
         return
 
     #Muestra la cabecera de la tabla con espacios fijos
-    print(f"{'N° Exp.':<10} | {'Trámite':<26} | {'Fecha':<16} | {'Área':<26} | {'Estado':<12}")
-    print("-" * 100)
+    print(f"{'N° Exp.':<10} | {'Trámite':<50} | {'Fecha':<16} | {'Área':<65} | {'Estado':<12}")
+    print("-" * 170)
     
     #Se crea un bucle para revisar cada trámite y dar formato a la fecha y ajustar textos a mostrar
     #En base a los campos de la funcióm consultar_tramites
     for t in tramites:
         fecha = t["fecha_registro"].strftime("%d/%m/%Y %H:%M")
-        print(f"{t['numero_expediente']:<10} | {t['tipo_tramite'][:26]:<26} | {fecha:<16} | {t['area'][:26]:<26} | {t['estado']:<12}")
+        print(f"{t['numero_expediente']:<10} | {t['tipo_tramite'][:50]:<50} | {fecha:<16} | {t['area'][:65]:<65} | {t['estado']:<12}")
         
     #Mostrar el total de tramites listados
-    print("-" * 100)
+    print("-" * 170)
     print(f"Total de trámites: {len(tramites)}")
 
 
