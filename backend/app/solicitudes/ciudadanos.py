@@ -27,6 +27,11 @@ def validar_correo(correo):
     return len(extension) >= 2 and extension.isalpha()
 
 
+def validar_telefono(telefono):
+    # En la BD el teléfono es VARCHAR(15) NOT NULL (entre 7 y 15 dígitos numéricos)
+    return telefono.isdigit() and 7 <= len(telefono) <= 15
+
+
 def validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono):
     # Verificar que los campos obligatorios no estén vacíos
     if not all([dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono]):
@@ -43,8 +48,7 @@ def validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_cadu
         print("\n[!] Formato inválido: Ingrese un correo electrónico válido.")
         return False
 
-    # En la BD el teléfono es VARCHAR(15) NOT NULL (entre 7 y 15 dígitos numéricos)
-    if not (telefono.isdigit() and 7 <= len(telefono) <= 15):
+    if not validar_telefono(telefono):
         print("\n[!] Formato inválido: El teléfono debe contener entre 7 y 15 dígitos numéricos.")
         return False
 
@@ -279,9 +283,16 @@ def pantalla_registrar_ciudadano():
         if contrasena.lower() == "salir":
             return
 
-        telefono = input("Teléfono / Celular: ").strip()
-        if telefono.lower() == "salir":
-            return
+        while True:
+            telefono = input("Teléfono / Celular: ").strip()
+            if telefono.lower() == "salir":
+                return
+
+            # Validar inmediatamente el formato del número telefónico
+            if not validar_telefono(telefono):
+                print("\n[!] Formato inválido: El teléfono debe contener entre 7 y 15 dígitos numéricos.\n")
+                continue
+            break
 
         direccion = input("Dirección (opcional, Enter para omitir): ").strip()
         if direccion.lower() == "salir":
