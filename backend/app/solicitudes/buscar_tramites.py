@@ -1,5 +1,6 @@
 # Importa funciones auxiliares y constantes de roles
 from solicitudes.extra import titulo_menu, ROL_TRABAJADOR, validar_dni
+from mysql.connector import Error
 
 
 # [T.D] Procesar la captura de la búsqueda exacta o parcial que el usuario desea encontrar según la opción elegida en el submenú.
