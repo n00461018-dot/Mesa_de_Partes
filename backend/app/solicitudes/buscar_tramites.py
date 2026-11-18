@@ -1,6 +1,53 @@
-# Importa funciones auxiliares y constantes de roles
+# Importa funciones auxiliares, constantes de roles y conexión a BD
 from solicitudes.extra import titulo_menu, ROL_TRABAJADOR, validar_dni
+from database.conexion_bd import conectar_bd
 from mysql.connector import Error
+
+
+# [T.D] Crear función con una consulta SQL aplicando el filtro estricto por el ID del área del trabajador y los filtros aplicados
+def consultar_tramites_por_criterio(conexion, id_area, criterio, valor):
+    try:
+        cursor = conexion.cursor(dictionary=True)
+        
+        # Base de la consulta uniendo expedientes, ciudadanos, tipos de trámite y estados
+        query = """
+            SELECT e.id_expediente, e.numero_expediente, tp.nombre_tramite AS tipo_tramite,
+                   CONCAT(c.nombre, ' ', c.apellido) AS ciudadano, c.dni, c.correo,
+                   e.asunto, e.fecha_registro, est.nombre_estado AS estado, e.id_area
+            FROM expediente e
+            INNER JOIN ciudadano c ON e.id_ciudadano = c.id_ciudadano
+            INNER JOIN tipo_tramite tp ON e.id_tipo_tramite = tp.id_tipo_tramite
+            INNER JOIN estado est ON e.id_estado = est.id_estado
+            WHERE e.id_area = %s
+        """
+        
+        # Parámetros iniciales con el filtro obligatorio del área del trabajador
+        params = [id_area]
+
+        # Aplicación dinámica del filtro según la opción elegida por el usuario
+        if criterio == "código":
+            query += " AND e.numero_expediente LIKE %s"
+            params.append(f"%{valor}%")
+        elif criterio == "asunto":
+            query += " AND e.asunto LIKE %s"
+            params.append(f"%{valor}%")
+        elif criterio == "dni":
+            query += " AND c.dni = %s"
+            params.append(valor)
+        elif criterio == "correo":
+            query += " AND c.correo LIKE %s"
+            params.append(f"%{valor}%")
+
+        query += " ORDER BY e.fecha_registro DESC"
+
+        cursor.execute(query, tuple(params))
+        resultados = cursor.fetchall()
+        cursor.close()
+        return resultados
+
+    except Error as error:
+        print(f"Error al consultar la base de datos: {error}")
+        return []
 
 
 # [T.D] Procesar la captura de la búsqueda exacta o parcial que el usuario desea encontrar según la opción elegida en el submenú.
@@ -31,7 +78,8 @@ def capturar_valor_busqueda(opcion):
 
         return criterio, valor
 
-# [T.D] Crear función con un submenú interactivo donde se seleccione el criterio específico de búsqueda entre código de expediente, asunto, DNI o correo del ciudadano.
+
+# [T.D] Crear función con un submenú interactivo donde se seleccione el criterio específico de búsqueda
 def buscar_tramites_area(usuario):
 
     # Verifica que el usuario tenga rol de trabajador y un área asignada
@@ -66,5 +114,21 @@ def buscar_tramites_area(usuario):
         # Captura y valida el valor según el criterio elegido
         criterio, valor_busqueda = capturar_valor_busqueda(opcion)
 
-        # Espacio reservado para la consulta SQL (siguiente actividad)
-        input(f"\nCriterio '{criterio}' con valor '{valor_busqueda}' listo. Presione Enter para continuar.")
+        # Establecer conexión a la base de datos para ejecutar la consulta
+        conexion = conectar_bd()
+        if conexion is None:
+            print("No se pudo conectar a la base de datos.")
+            input("\nPresione Enter para continuar.")
+            continue
+
+        try:
+            # Ejecuta la consulta SQL aplicando el filtro estricto por el ID del área del trabajador
+            resultados = consultar_tramites_por_criterio(
+                conexion, usuario["id_area"], criterio, valor_busqueda
+            )
+            
+            print(f"\n[Consulta ejecutada exitosamente. Se encontraron {len(resultados)} registros.]")
+            input("\nPresione Enter para continuar.")
+
+        finally:
+            conexion.close()
