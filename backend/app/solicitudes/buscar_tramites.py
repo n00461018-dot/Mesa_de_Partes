@@ -1,5 +1,5 @@
 # Importa funciones auxiliares, constantes de roles y conexión a BD
-from solicitudes.extra import titulo_menu, ROL_TRABAJADOR, validar_dni
+from solicitudes.extra import titulo_menu, ROL_TRABAJADOR, validar_dni, validar_lista_vacia
 from database.conexion_bd import conectar_bd
 from mysql.connector import Error
 
@@ -8,7 +8,7 @@ from mysql.connector import Error
 def consultar_tramites_por_criterio(conexion, id_area, criterio, valor):
     try:
         cursor = conexion.cursor(dictionary=True)
-        
+
         # Base de la consulta uniendo expedientes, ciudadanos, tipos de trámite y estados
         query = """
             SELECT e.id_expediente, e.numero_expediente, tp.nombre_tramite AS tipo_tramite,
@@ -20,7 +20,7 @@ def consultar_tramites_por_criterio(conexion, id_area, criterio, valor):
             INNER JOIN estado est ON e.id_estado = est.id_estado
             WHERE e.id_area = %s
         """
-        
+
         # Parámetros iniciales con el filtro obligatorio del área del trabajador
         params = [id_area]
 
@@ -48,6 +48,15 @@ def consultar_tramites_por_criterio(conexion, id_area, criterio, valor):
     except Error as error:
         print(f"Error al consultar la base de datos: {error}")
         return []
+
+
+# [T.D] Crear función para integrar la validación de aviso en consola y manejar los casos donde la consulta devuelva cero resultados.
+def manejar_sin_resultados(resultados, criterio, valor_busqueda):
+    mensaje = f"No se encontraron trámites en tu área con {criterio}: '{valor_busqueda}'."
+    if validar_lista_vacia(resultados, mensaje):
+        input("\nPresione Enter para intentar con otra búsqueda.")
+        return True
+    return False
 
 
 # [T.D] Procesar la captura de la búsqueda exacta o parcial que el usuario desea encontrar según la opción elegida en el submenú.
@@ -126,7 +135,11 @@ def buscar_tramites_area(usuario):
             resultados = consultar_tramites_por_criterio(
                 conexion, usuario["id_area"], criterio, valor_busqueda
             )
-            
+
+            # Valida si la consulta devolvió cero resultados
+            if manejar_sin_resultados(resultados, criterio, valor_busqueda):
+                continue
+
             print(f"\n[Consulta ejecutada exitosamente. Se encontraron {len(resultados)} registros.]")
             input("\nPresione Enter para continuar.")
 
