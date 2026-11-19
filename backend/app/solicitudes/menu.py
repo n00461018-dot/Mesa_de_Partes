@@ -11,6 +11,7 @@ from solicitudes.Expedientes_areas import buscar_expedientes_todas_las_areas
 from solicitudes.bandeja_area import bandeja_mi_area
 from notificaciones.notificador_correo import menu_respuesta_correo
 from solicitudes.tramites import registrar_tramite, consultar_mis_tramites
+from solicitudes.buscar_tramites import buscar_tramites_area
 
 # FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
 def ejecutar_seguimiento(usuario):
@@ -120,7 +121,7 @@ funciones_menu = {
         "Reportes (trámites por área y estado)": menu_reportes,
         "Buscar trámites de todas las áreas": buscar_expedientes_todas_las_areas,
         "Bandeja de mi área": bandeja_mi_area,
-        "Buscar trámites": "Ingresar el nombre de la funcion",
+        "Buscar trámites": buscar_tramites_area,
         "Mis trámites": consultar_mis_tramites,
         "Seguimiento de expediente": ejecutar_seguimiento,
         "Cambio de estado": ejecutar_cambio_estado,
@@ -183,6 +184,7 @@ def ejecutar_menu(usuario):
             if opcion_seleccionada in (
                 "Registrar trámite",
                 "Bandeja de mi area",
+                "Buscar trámites",
                 "Derivar trámites",
                 "Seguimiento de expediente",
                 "Cambio de estado",

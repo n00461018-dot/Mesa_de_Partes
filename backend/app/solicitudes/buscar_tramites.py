@@ -1,4 +1,4 @@
-# Importa funciones auxiliares, constantes de roles y conexión a BD
+# Importa funciones auxiliares, constantes de roles, conexión a BD y tabla de reportes
 from solicitudes.extra import titulo_menu, ROL_TRABAJADOR, validar_dni, validar_lista_vacia
 from solicitudes.reportes import rep_mostrar_tabla
 from database.conexion_bd import conectar_bd
@@ -10,15 +10,17 @@ def consultar_tramites_por_criterio(conexion, id_area, criterio, valor):
     try:
         cursor = conexion.cursor(dictionary=True)
 
-        # Base de la consulta uniendo expedientes, ciudadanos, tipos de trámite y estados
+        # Base de la consulta uniendo expedientes, ciudadanos, tipos de trámite, estados y área
         query = """
             SELECT e.id_expediente, e.numero_expediente, tp.nombre_tramite AS tipo_tramite,
                    CONCAT(c.nombre, ' ', c.apellido) AS ciudadano, c.dni, c.correo,
-                   e.asunto, e.fecha_registro, est.nombre_estado AS estado, e.id_area
+                   e.asunto, e.fecha_registro, est.nombre_estado AS estado,
+                   a.nombre_area AS area, e.id_area
             FROM expediente e
             INNER JOIN ciudadano c ON e.id_ciudadano = c.id_ciudadano
             INNER JOIN tipo_tramite tp ON e.id_tipo_tramite = tp.id_tipo_tramite
             INNER JOIN estado est ON e.id_estado = est.id_estado
+            INNER JOIN area a ON e.id_area = a.id_area
             WHERE e.id_area = %s
         """
 
@@ -39,6 +41,7 @@ def consultar_tramites_por_criterio(conexion, id_area, criterio, valor):
             query += " AND c.correo LIKE %s"
             params.append(f"%{valor}%")
 
+        # Ordena los expedientes de forma descendente por fecha de registro (más reciente primero)
         query += " ORDER BY e.fecha_registro DESC"
 
         cursor.execute(query, tuple(params))
@@ -58,6 +61,24 @@ def manejar_sin_resultados(resultados, criterio, valor_busqueda):
         input("\nPresione Enter para intentar con otra búsqueda.")
         return True
     return False
+
+
+# [T.D] Crear función para adaptar el resultado en el formato de tabla de rep_mostrar_tabla y mostrar los expedientes encontrados ordenadamente.
+def adaptar_resultados_tabla(resultados):
+    tramites_adaptados = []
+
+    # Se conserva el orden proveniente de la consulta (fecha_registro DESC)
+    for r in resultados:
+        tramite = {
+            "numero_expediente": r["numero_expediente"],
+            "tipo_tramite": r["tipo_tramite"],
+            "fecha_registro": r["fecha_registro"],
+            "area": r["area"],
+            "estado": r["estado"],
+        }
+        tramites_adaptados.append(tramite)
+
+    return tramites_adaptados
 
 
 # [T.D] Procesar la captura de la búsqueda exacta o parcial que el usuario desea encontrar según la opción elegida en el submenú.
@@ -141,7 +162,11 @@ def buscar_tramites_area(usuario):
             if manejar_sin_resultados(resultados, criterio, valor_busqueda):
                 continue
 
-            rep_mostrar_tabla(resultados)
+            # Adapta los resultados al formato esperado por rep_mostrar_tabla y los imprime ordenadamente
+            tramites_tabla = adaptar_resultados_tabla(resultados)
+            titulo_menu("Resultados de búsqueda")
+            print(f"Criterio: {criterio} | Búsqueda: '{valor_busqueda}' | Orden: Fecha (más reciente primero)\n")
+            rep_mostrar_tabla(tramites_tabla)
             input("\nPresione Enter para continuar.")
 
         finally:
