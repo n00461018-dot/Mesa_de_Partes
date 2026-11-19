@@ -1,5 +1,6 @@
 # Importa funciones auxiliares, constantes de roles y conexión a BD
 from solicitudes.extra import titulo_menu, ROL_TRABAJADOR, validar_dni, validar_lista_vacia
+from solicitudes.reportes import rep_mostrar_tabla
 from database.conexion_bd import conectar_bd
 from mysql.connector import Error
 
@@ -140,7 +141,7 @@ def buscar_tramites_area(usuario):
             if manejar_sin_resultados(resultados, criterio, valor_busqueda):
                 continue
 
-            print(f"\n[Consulta ejecutada exitosamente. Se encontraron {len(resultados)} registros.]")
+            rep_mostrar_tabla(resultados)
             input("\nPresione Enter para continuar.")
 
         finally:
