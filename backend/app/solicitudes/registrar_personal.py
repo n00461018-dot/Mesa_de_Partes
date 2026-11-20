@@ -2,6 +2,7 @@ from solicitudes.extra import titulo_menu, validar_dni, seleccionar_de_lista, RO
 from solicitudes.ciudadanos import ErrorBD, pedir_campo, validar_correo, _obligatorio, _validar_dni_nuevo, _validar_correo_nuevo
 from mysql.connector import Error
 from database.conexion_bd import conectar_bd
+from database.consultas_bd import listar_areas
 
 def gestionar_personal_areas(usuario):
 
@@ -38,3 +39,16 @@ CAMPOS_PERSONAL = [
     ("correo", "Correo electrónico: ", _validar_correo_nuevo),
     ("contrasena", "Contraseña: ", _obligatorio),
 ]
+
+def _obtener_areas():
+    conexion = conectar_bd()
+    if conexion is None:
+        return False
+ 
+    try:
+        return listar_areas(conexion)
+    except Error as e:
+        print(f"\nError: {e}")
+        return False
+    finally:
+        conexion.close()
