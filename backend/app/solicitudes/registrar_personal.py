@@ -52,3 +52,34 @@ def _obtener_areas():
         return False
     finally:
         conexion.close()
+
+# Función para guardar el trabajador en la tabla 'usuario' con rol Trabajador y el área elegida
+def registrar_trabajador_bd(dni, nombre, apellido, correo, contrasena, id_area):
+    conexion = conectar_bd()
+    if conexion is None:
+        return False
+ 
+    cursor = None
+    try:
+        cursor = conexion.cursor()
+        # El rol se asigna automáticamente (Trabajador) y el área es la elegida por el administrador
+        sql = """
+            INSERT INTO usuario (dni, nombre, apellido, correo, contrasena, id_rol, id_area)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(sql, (dni, nombre, apellido, correo, contrasena, ROL_TRABAJADOR, id_area))
+        conexion.commit()
+        return True
+ 
+    except Error as e:
+        conexion.rollback()
+        #Excepcion MYSQL con codigo 1062 es para registros de valores duplicados
+        if e.errno == 1062:
+            print("\nError: El DNI o el correo ya se encuentran registrados.")
+        else:
+            print(f"\nError: {e}")
+        return False
+    finally:
+        if cursor is not None:
+            cursor.close()
+        conexion.close()
