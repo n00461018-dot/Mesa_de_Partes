@@ -86,3 +86,16 @@ def consultar_expedientes_mi_area(conexion, id_usuario):
         return cursor.fetchall()
     finally:
         cursor.close()
+
+#Función con una consulta bd que devuelve la lista de áreas (por id y nombre) ordenadas por el id área
+#Se usa un parámetro por defecto para poder excluir un área en caso sea una consulta hecha por un trabajador
+def listar_areas(conexion, excluir_id_area=None):
+    with conexion.cursor(dictionary=True) as cursor:
+        if excluir_id_area is None:
+            cursor.execute("SELECT id_area, nombre FROM area ORDER BY id_area")
+        else:
+            cursor.execute(
+                "SELECT id_area, nombre FROM area WHERE id_area != %s ORDER BY id_area",
+                (excluir_id_area,)
+            )
+        return cursor.fetchall()
