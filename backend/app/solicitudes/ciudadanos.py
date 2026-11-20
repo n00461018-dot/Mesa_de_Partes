@@ -1,87 +1,86 @@
 from mysql.connector import Error
 from solicitudes.extra import titulo_menu, validar_dni
 from database.conexion_bd import conectar_bd
-from database.reniec import digito_verificador_dni, validar_padron_reniec
+from database.reniec import validar_padron_reniec
 
 
 # ==============================================================================
-# VALIDACIONES DE FORMATO Y DUPLICADOS
+# VALIDACIONES DE FORMATO
 # ==============================================================================
 
-def validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono):
-    # Verificar que los campos obligatorios no estén vacíos
-    if not all([dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono]):
-        print("\n[!] Error: Todos los campos obligatorios deben ser completados.")
+def validar_correo(correo):
+    # Verificar que no tenga espacios, puntos seguidos y que contenga exactamente un @
+    if " " in correo or ".." in correo or correo.count("@") != 1:
         return False
 
-    # Reutilizamos función validar_dni de solicitudes/extra.py para la validación del DNI
-    error_dni = validar_dni(dni)
-    if error_dni is not None:
-        print(f"\n[!] Formato inválido: {error_dni}")
-        return False
-    
-    error_digito = digito_verificador_dni(dni, digito_verificador)
-    if error_digito is not None:
-        print(f"\n[!] Verificación fallida: {error_digito}")
-        return False
-    
-    error_padron = validar_padron_reniec(dni, fecha_emision, fecha_caducidad)
-    if error_padron is not None:
-        print(f"\n[!] Validación RENIEC fallida: {error_padron}")
+    usuario_correo, dominio = correo.split("@")
+    # Verificar que exista usuario antes del @ y un punto dentro del dominio
+    if not usuario_correo or usuario_correo.startswith(".") or usuario_correo.endswith(".") or "." not in dominio:
         return False
 
-    # El correo debe contener un @, un punto (.), sin espacios y al menos 6 caracteres
-    es_correo = (
-        "@" in correo
-        and "." in correo
-        and " " not in correo
-        and len(correo) >= 6
-    )
-    if not es_correo:
-        print("\n[!] Formato inválido: Ingrese un correo electrónico válido.")
+    partes_dominio = dominio.split(".")
+    # Verificar que ninguna parte del dominio esté vacía y que la extensión final tenga al menos 2 letras
+    if "" in partes_dominio:
         return False
 
+    extension = partes_dominio[-1]
+    return len(extension) >= 2 and extension.isalpha()
+
+
+def validar_telefono(telefono):
     # En la BD el teléfono es VARCHAR(15) NOT NULL (entre 7 y 15 dígitos numéricos)
-    if not (telefono.isdigit() and 7 <= len(telefono) <= 15):
-        print("\n[!] Formato inválido: El teléfono debe contener entre 7 y 15 dígitos numéricos.")
-        return False
-
-    return True
+    return telefono.isdigit() and 7 <= len(telefono) <= 15
 
 
-def verificar_duplicado(dni, correo):
-    # Consulta si el DNI o el correo ya existen en la tabla 'usuario'
-    # Devuelve True si hay duplicado, False si está disponible o None si hubo error de BD
+# ==============================================================================
+# CONSULTAS A LA BASE DE DATOS
+# ==============================================================================
+
+# Excepción para cancelar el registro si no se puede consultar la BD
+class ErrorBD(Exception):
+    pass
+
+
+# Función auxiliar para ejecutar un SELECT abriendo y cerrando su propia conexión
+# Devuelve una fila (uno=True) o la lista de filas, y False si hubo error de BD
+def _consultar(sql, parametros, mensaje_error, uno=False):
     conexion = conectar_bd()
     if conexion is None:
-        return None
+        return False
 
     cursor = None
     try:
         cursor = conexion.cursor(dictionary=True)
-        sql = "SELECT dni, correo FROM usuario WHERE dni = %s OR correo = %s"
-        cursor.execute(sql, (dni, correo))
-        registro = cursor.fetchone()
-
-        if registro is not None:
-            if registro["dni"] == dni:
-                print(f"\n[!] Error: Ya existe un usuario registrado con el DNI {dni}.")
-            elif registro["correo"].lower() == correo.lower():
-                print(f"\n[!] Error: El correo '{correo}' ya se encuentra registrado.")
-            return True
-
-        return False
+        cursor.execute(sql, parametros)
+        return cursor.fetchone() if uno else cursor.fetchall()
 
     except Error as e:
-        print(f"\n[!] Error al verificar duplicados en la base de datos: {e}")
-        return None
+        print(f"\n[!] {mensaje_error}: {e}")
+        return False
     finally:
         # Siempre se cierran el cursor y la conexión
         if cursor is not None:
             cursor.close()
         conexion.close()
 
-# Función para registrar el ciudadno en la BD
+
+# Consultas para saber si el DNI o el correo ya existen en la tabla 'usuario'
+SQL_DUPLICADO = {
+    "dni": "SELECT 1 FROM usuario WHERE dni = %s LIMIT 1",
+    "correo": "SELECT 1 FROM usuario WHERE correo = %s LIMIT 1",
+}
+
+
+def existe_usuario(campo, valor):
+    # Devuelve True si el dato ya está registrado y lanza ErrorBD si no se pudo consultar
+    registro = _consultar(SQL_DUPLICADO[campo], (valor,),
+                          "Error al verificar duplicados en la base de datos", uno=True)
+    if registro is False:
+        raise ErrorBD()
+    return registro is not None
+
+
+# Función para registrar el ciudadano en la BD
 def registrar_ciudadano_bd(dni, nombre, apellido, correo, contrasena, telefono, direccion):
     # Inserta primero en 'usuario' (id_rol = 3 para Ciudadano) y luego en 'ciudadano'
     conexion = conectar_bd()
@@ -100,22 +99,21 @@ def registrar_ciudadano_bd(dni, nombre, apellido, correo, contrasena, telefono, 
         cursor.execute(sql_usuario, (dni, nombre, apellido, correo, contrasena))
         id_usuario_nuevo = cursor.lastrowid
 
-        # Si la dirección se dejó en blanco, se guarda como NULL en la BD
-        direccion_bd = direccion if direccion != "" else None
-
         # 2. Insertar datos de contacto en la tabla 'ciudadano'
+        # Si la dirección se dejó en blanco, se guarda como NULL en la BD
         sql_ciudadano = """
             INSERT INTO ciudadano (telefono, direccion, id_usuario)
             VALUES (%s, %s, %s)
         """
-        cursor.execute(sql_ciudadano, (telefono, direccion_bd, id_usuario_nuevo))
+        cursor.execute(sql_ciudadano, (telefono, direccion or None, id_usuario_nuevo))
 
         # Confirmar ambas inserciones en la base de datos
         conexion.commit()
         return True
 
     except Error as e:
-        # Si ocurre algún problema, se deshacen los cambios para no dejar registros incompletos
+        # Si ocurre algún problema (por ejemplo, un DNI o correo duplicado que la BD
+        # rechaza por ser UNIQUE), se deshacen los cambios para no dejar registros incompletos
         conexion.rollback()
         print(f"\n[!] Error al registrar al ciudadano: {e}")
         return False
@@ -124,73 +122,152 @@ def registrar_ciudadano_bd(dni, nombre, apellido, correo, contrasena, telefono, 
             cursor.close()
         conexion.close()
 
+
 # Función para consultar el ciudadano utilizando su DNI
 def consultar_ciudadano_por_dni(dni):
     # Busca a un ciudadano por su DNI y cuenta sus expedientes registrados
     # Devuelve un diccionario con los datos, None si no existe o False si hubo error de BD
-    conexion = conectar_bd()
-    if conexion is None:
-        return False
-
-    cursor = None
-    try:
-        cursor = conexion.cursor(dictionary=True)
-        sql = """
-            SELECT c.id_ciudadano, u.id_usuario, u.dni, u.nombre, u.apellido,
-                   u.correo, c.telefono, c.direccion,
-                   COUNT(e.id_expediente) AS total_expedientes
-            FROM ciudadano c
-            INNER JOIN usuario u ON c.id_usuario = u.id_usuario
-            LEFT JOIN expediente e ON c.id_ciudadano = e.id_ciudadano
-            WHERE u.dni = %s
-            GROUP BY c.id_ciudadano, u.id_usuario, u.dni, u.nombre, u.apellido,
-                     u.correo, c.telefono, c.direccion
-        """
-        cursor.execute(sql, (dni,))
-        return cursor.fetchone()
-
-    except Error as e:
-        print(f"\n[!] Error en la consulta por DNI: {e}")
-        return False
-    finally:
-        if cursor is not None:
-            cursor.close()
-        conexion.close()
+    sql = """
+        SELECT c.id_ciudadano, u.id_usuario, u.dni, u.nombre, u.apellido,
+               u.correo, c.telefono, c.direccion,
+               COUNT(e.id_expediente) AS total_expedientes
+        FROM ciudadano c
+        INNER JOIN usuario u ON c.id_usuario = u.id_usuario
+        LEFT JOIN expediente e ON c.id_ciudadano = e.id_ciudadano
+        WHERE u.dni = %s
+        GROUP BY c.id_ciudadano, u.id_usuario, u.dni, u.nombre, u.apellido,
+                 u.correo, c.telefono, c.direccion
+    """
+    return _consultar(sql, (dni,), "Error en la consulta por DNI", uno=True)
 
 
 def listar_ciudadanos_bd(filtro=""):
     # Lista todos los ciudadanos o filtra por coincidencias en DNI, nombre o apellido
-    conexion = conectar_bd()
-    if conexion is None:
-        return False
+    # Devuelve una lista de diccionarios o False si hubo error de BD
+    sql = """
+        SELECT c.id_ciudadano, u.dni, u.nombre, u.apellido,
+               u.correo, c.telefono, c.direccion
+        FROM ciudadano c
+        INNER JOIN usuario u ON c.id_usuario = u.id_usuario
+        WHERE u.dni LIKE %s OR u.nombre LIKE %s OR u.apellido LIKE %s
+        ORDER BY u.apellido ASC, u.nombre ASC
+    """
+    patron = f"%{filtro}%"
+    return _consultar(sql, (patron, patron, patron), "Error al listar ciudadanos")
 
-    cursor = None
+
+# ==============================================================================
+# REGISTRO DE CIUDADANO
+# ==============================================================================
+
+# Validadores de cada campo del registro: devuelven el mensaje de error o None si el dato es válido
+def _obligatorio(valor):
+    return None if valor else "Error: Este campo es obligatorio."
+
+
+def _validar_dni_nuevo(dni):
+    error_dni = validar_dni(dni)
+    if error_dni is not None:
+        return f"Formato inválido: {error_dni}"
+    # Verificar inmediatamente en la BD si el DNI ya está registrado
+    if existe_usuario("dni", dni):
+        return f"Error: Ya existe un usuario registrado con el DNI {dni}."
+    return None
+
+
+def _validar_correo_nuevo(correo):
+    if not validar_correo(correo):
+        return "Formato inválido: Ingrese un correo electrónico válido."
+    # Verificar inmediatamente en la BD si el correo ya está registrado
+    if existe_usuario("correo", correo):
+        return f"Error: El correo '{correo}' ya se encuentra registrado."
+    return None
+
+
+def _validar_telefono_nuevo(telefono):
+    if not validar_telefono(telefono):
+        return "Formato inválido: El teléfono debe contener entre 7 y 15 dígitos numéricos."
+    return None
+
+
+# Campos del formulario de registro en el orden en que se piden: (clave, mensaje, validador)
+CAMPOS_REGISTRO = [
+    ("dni", "DNI (8 dígitos): ", _validar_dni_nuevo),
+    ("digito", "Código verificador (9no dígito al costado del DNI): ", _obligatorio),
+    ("emision", "Fecha de emisión del DNI (DD/MM/AAAA): ", _obligatorio),
+    ("caducidad", "Fecha de caducidad del DNI (DD/MM/AAAA): ", _obligatorio),
+    ("nombre", "Nombres: ", _obligatorio),
+    ("apellido", "Apellidos: ", _obligatorio),
+    ("correo", "Correo electrónico: ", _validar_correo_nuevo),
+    ("contrasena", "Contraseña: ", _obligatorio),
+    ("telefono", "Teléfono / Celular: ", _validar_telefono_nuevo),
+    ("direccion", "Dirección (opcional, Enter para omitir): ", None),
+]
+
+
+def pedir_campo(mensaje, validar=None):
+    # Pide un dato hasta que sea válido. Devuelve None si el usuario escribe 'salir'
+    while True:
+        valor = input(mensaje).strip()
+        if valor.lower() == "salir":
+            return None
+
+        error = validar(valor) if validar is not None else None
+        if error is None:
+            return valor
+        print(f"\n[!] {error}\n")
+
+
+def pantalla_registrar_ciudadano():
     try:
-        cursor = conexion.cursor(dictionary=True)
-        sql = """
-            SELECT c.id_ciudadano, u.dni, u.nombre, u.apellido,
-                   u.correo, c.telefono, c.direccion
-            FROM ciudadano c
-            INNER JOIN usuario u ON c.id_usuario = u.id_usuario
-            WHERE u.dni LIKE %s OR u.nombre LIKE %s OR u.apellido LIKE %s
-            ORDER BY u.apellido ASC, u.nombre ASC
-        """
-        patron = f"%{filtro}%"
-        cursor.execute(sql, (patron, patron, patron))
-        return cursor.fetchall()
+        while True:
+            titulo_menu("Registrar Ciudadano")
+            print("Complete los datos del ciudadano (o escriba 'salir' para cancelar).")
+            print("-" * 54)
 
-    except Error as e:
-        print(f"\n[!] Error al listar ciudadanos: {e}")
-        return False
-    finally:
-        if cursor is not None:
-            cursor.close()
-        conexion.close()
+            # 1. Pedir y validar cada campo al momento de ingresarlo
+            datos = {}
+            for clave, mensaje, validar in CAMPOS_REGISTRO:
+                valor = pedir_campo(mensaje, validar)
+                if valor is None:
+                    return
+                datos[clave] = valor
+
+            # 2. Validar el DNI con el padrón RENIEC (dígito verificador y fechas)
+            error_padron = validar_padron_reniec(
+                datos["dni"], datos["digito"], datos["emision"], datos["caducidad"]
+            )
+            if error_padron is not None:
+                print(f"\n[!] Validación RENIEC fallida: {error_padron}")
+                input("\nPresione Enter para intentar de nuevo.")
+                continue
+
+            # 3. Guardar en las tablas 'usuario' y 'ciudadano'
+            exito = registrar_ciudadano_bd(
+                datos["dni"], datos["nombre"], datos["apellido"], datos["correo"],
+                datos["contrasena"], datos["telefono"], datos["direccion"]
+            )
+
+            if exito:
+                print(f"\n[OK] ¡Ciudadano {datos['nombre']} {datos['apellido']} (DNI: {datos['dni']}) registrado exitosamente!")
+            else:
+                print("\n[X] No se pudo completar el registro del ciudadano.")
+
+            input("\nPresione Enter para continuar.")
+            return
+
+    except ErrorBD:
+        print("\nNo se pudo verificar la información en la base de datos.")
+        input("\nPresione Enter para continuar.")
+
+
+# ==============================================================================
+# CONSULTA DE CIUDADANOS
+# ==============================================================================
 
 # Función para mostrar todos los datos del ciudadano
 def mostrar_ficha_ciudadano(ciudadano):
     # Imprime de forma ordenada los datos de un ciudadano
-    direccion_texto = ciudadano["direccion"] if ciudadano["direccion"] is not None else "No especificada"
     print("-" * 54)
     print(f" ID Ciudadano : {ciudadano['id_ciudadano']}")
     print(f" DNI          : {ciudadano['dni']}")
@@ -198,85 +275,22 @@ def mostrar_ficha_ciudadano(ciudadano):
     print(f" Apellidos    : {ciudadano['apellido']}")
     print(f" Correo       : {ciudadano['correo']}")
     print(f" Teléfono     : {ciudadano['telefono']}")
-    print(f" Dirección    : {direccion_texto}")
+    print(f" Dirección    : {ciudadano['direccion'] or 'No especificada'}")
     if "total_expedientes" in ciudadano:
         print(f" Expedientes  : {ciudadano['total_expedientes']} registrado(s)")
     print("-" * 54)
 
 
-def pantalla_registrar_ciudadano():
-    while True:
-        titulo_menu("Registrar Ciudadano")
-        print("Complete los datos del ciudadano (o escriba 'salir' para cancelar).")
-        print("-" * 54)
-
-        dni = input("DNI (8 dígitos): ").strip()
-        if dni.lower() == "salir":
-            return
-        
-        digito_verificador = input("Código verificador (9no dígito al costado del DNI): ").strip()
-        if digito_verificador.lower() == "salir":
-            return
-        
-        fecha_emision = input("Fecha de emisión del DNI (DD/MM/AAAA): ").strip()
-        if fecha_emision.lower() == "salir":
-            return
-        
-        fecha_caducidad = input("Fecha de caducidad del DNI (DD/MM/AAAA): ").strip()
-        if fecha_caducidad.lower() == "salir":
-            return
-
-        nombre = input("Nombres: ").strip()
-        if nombre.lower() == "salir":
-            return
-
-        apellido = input("Apellidos: ").strip()
-        if apellido.lower() == "salir":
-            return
-
-        correo = input("Correo electrónico: ").strip()
-        if correo.lower() == "salir":
-            return
-
-        contrasena = input("Contraseña: ").strip()
-        if contrasena.lower() == "salir":
-            return
-
-        telefono = input("Teléfono / Celular: ").strip()
-        if telefono.lower() == "salir":
-            return
-
-        direccion = input("Dirección (opcional, Enter para omitir): ").strip()
-        if direccion.lower() == "salir":
-            return
-
-        # 1. Validar el formato de los campos antes de conectar a MySQL
-        if not validar_formato_ciudadano(dni, digito_verificador, fecha_emision, fecha_caducidad, nombre, apellido, correo, contrasena, telefono):
-            input("\nPresione Enter para intentar de nuevo.")
-            continue
-
-        # 2. Verificar que el DNI o correo no estén duplicados en la BD
-        duplicado = verificar_duplicado(dni, correo)
-        if duplicado is None:
-            print("\nNo se pudo verificar la información en la base de datos.")
-            input("\nPresione Enter para continuar.")
-            return
-        if duplicado is True:
-            input("\nPresione Enter para intentar con otros datos.")
-            continue
-
-        # 3. Guardar en las tablas 'usuario' y 'ciudadano'
-        exito = registrar_ciudadano_bd(
-            dni, nombre, apellido, correo, contrasena, telefono, direccion
-        )
-
-        if exito:
-            print(f"\n[OK] ¡Ciudadano {nombre} {apellido} (DNI: {dni}) registrado exitosamente!")
-        else:
-            print("\n[X] No se pudo completar el registro del ciudadano.")
-
-        input("\nPresione Enter para continuar.")
-        return
+# Función para mostrar una lista de ciudadanos con sus mensajes de error, vacío y total
+def mostrar_listado(resultados, mensaje_error, mensaje_vacio, mensaje_total):
+    if resultados is False:
+        print(mensaje_error)
+    elif len(resultados) == 0:
+        print(mensaje_vacio)
+    else:
+        print(mensaje_total.format(len(resultados)))
+        for c in resultados:
+            mostrar_ficha_ciudadano(c)
 
 
 def pantalla_consultar_ciudadano():
@@ -296,19 +310,15 @@ def pantalla_consultar_ciudadano():
 
             if validar_dni(dni_busqueda) is not None:
                 print("\n[!] Formato inválido: El DNI debe tener 8 dígitos numéricos.")
-                input("\nPresione Enter para continuar.")
-                continue
-
-            ciudadano = consultar_ciudadano_por_dni(dni_busqueda)
-            if ciudadano is False:
-                print("\nNo se pudo realizar la consulta en la base de datos.")
-            elif ciudadano is None:
-                print(f"\n[X] No se encontró ningún ciudadano con el DNI {dni_busqueda}.")
             else:
-                print("\n[OK] Ciudadano encontrado:")
-                mostrar_ficha_ciudadano(ciudadano)
-
-            input("\nPresione Enter para continuar.")
+                ciudadano = consultar_ciudadano_por_dni(dni_busqueda)
+                if ciudadano is False:
+                    print("\nNo se pudo realizar la consulta en la base de datos.")
+                elif ciudadano is None:
+                    print(f"\n[X] No se encontró ningún ciudadano con el DNI {dni_busqueda}.")
+                else:
+                    print("\n[OK] Ciudadano encontrado:")
+                    mostrar_ficha_ciudadano(ciudadano)
 
         elif opcion == "2":
             titulo_menu("Buscar Ciudadano por Nombre o Apellido")
@@ -316,41 +326,32 @@ def pantalla_consultar_ciudadano():
 
             if termino == "":
                 print("\n[!] Error: Debe ingresar al menos un texto para buscar.")
-                input("\nPresione Enter para continuar.")
-                continue
-
-            resultados = listar_ciudadanos_bd(termino)
-            if resultados is False:
-                print("\nNo se pudo realizar la consulta en la base de datos.")
-            elif len(resultados) == 0:
-                print(f"\n[X] No se encontraron ciudadanos que coincidan con '{termino}'.")
             else:
-                print(f"\n[OK] Se encontraron {len(resultados)} coincidencia(s):")
-                for c in resultados:
-                    mostrar_ficha_ciudadano(c)
-
-            input("\nPresione Enter para continuar.")
+                mostrar_listado(
+                    listar_ciudadanos_bd(termino),
+                    "\nNo se pudo realizar la consulta en la base de datos.",
+                    f"\n[X] No se encontraron ciudadanos que coincidan con '{termino}'.",
+                    "\n[OK] Se encontraron {} coincidencia(s):",
+                )
 
         elif opcion == "3":
             titulo_menu("Listado de Ciudadanos Registrados")
-            resultados = listar_ciudadanos_bd("")
-
-            if resultados is False:
-                print("\nNo se pudo obtener el listado de la base de datos.")
-            elif len(resultados) == 0:
-                print("\n[!] Aún no hay ciudadanos registrados en el sistema.")
-            else:
-                print(f"Total de ciudadanos registrados: {len(resultados)}")
-                for c in resultados:
-                    mostrar_ficha_ciudadano(c)
-
-            input("\nPresione Enter para continuar.")
+            mostrar_listado(
+                listar_ciudadanos_bd(),
+                "\nNo se pudo obtener el listado de la base de datos.",
+                "\n[!] Aún no hay ciudadanos registrados en el sistema.",
+                "Total de ciudadanos registrados: {}",
+            )
 
         elif opcion == "4":
             return
 
         else:
             input("\nOpción no válida. Presione Enter para reintentar.")
+            continue
+
+        # Pausa común a las opciones 1, 2 y 3
+        input("\nPresione Enter para continuar.")
 
 
 def menu_ciudadanos():

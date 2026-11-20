@@ -1,5 +1,6 @@
-# Acciones disponibles según el estado actual del expediente.
+# Acciones disponibles segun el estado actual del expediente.
 TRANSICIONES = {
+
     "Derivado": {
         "1": ("Iniciar atencion del expediente", "En proceso")
     },
@@ -14,6 +15,7 @@ TRANSICIONES = {
         "1": ("Reanudar atencion del expediente", "En proceso")
     }
 }
+
 
 
 def actualizar_estado(conexion, numero, accion, observacion, id_usuario):

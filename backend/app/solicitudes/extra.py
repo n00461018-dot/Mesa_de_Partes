@@ -83,3 +83,47 @@ def extraer_tipo_doc(archivo):
     #Se divide el string con el primer punto encontrado desde la derecha
     #La funcion devuelve la extensión del archivo solicitado
     return archivo.rsplit(".", 1)[1].upper()
+
+#Función reutilizable para validar si una lista está vacía o es nula
+def validar_lista_vacia(lista, mensaje="No se encontraron registros."):
+    #Si la lista  no tiene los requisitos se mostrará un mensaje de aviso
+    if not lista or len(lista) == 0:
+        print("-" * 65)
+        print(f"Aviso: {mensaje}")
+        print("-" * 65)
+        return True
+    return False
+
+#Funcion para mostrar una lista numerada de diccionarios y devuelve el elemento elegido
+def seleccionar_de_lista(items, campo="nombre", titulo="OPCIONES",
+                         mensaje="Seleccione una opción: ", cancelar=("0",)):
+    #Si la lista llega vacía, avisa al usuario y sale sin pedir datos
+    if not items:
+        print("\nNo hay opciones disponibles para seleccionar.")
+        return None
+
+    print(f"{titulo}\n")
+    #Recorre la lista numerando desde 1 y extrae el valor de la clave indicada en 'campo'
+    for posicion, item in enumerate(items, 1):
+        print(f" {posicion}. {item[campo]}")
+
+    #Muestra un mensaje para cancelar la operación
+    if "0" in cancelar:
+        print(" 0. Cancelar")
+    else:
+        print(f"\n(Escriba '{cancelar[0]}' para cancelar)")
+
+    #Repite la solicitud hasta que el usuario cancele o elija un número válido
+    while True:
+        eleccion = input(f"\n{mensaje}").strip()
+
+        #Comprueba (sin importar mayúsculas/minúsculas) si el usuario decidió cancelar
+        if eleccion.lower() in cancelar:
+            return None
+
+        #Valida que sea un número entero positivo y que esté dentro del rango de opciones mostradas
+        if eleccion.isdecimal() and 1 <= int(eleccion) <= len(items):
+            #Resta 1 para convertir el número de opción (base 1) al índice real de la lista (base 0)
+            return items[int(eleccion) - 1]
+
+        print(f"\nError: Opción no válida. Ingrese un número entre 1 y {len(items)}.")

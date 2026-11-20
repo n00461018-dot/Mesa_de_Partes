@@ -32,7 +32,11 @@ def digito_verificador_dni(dni, digito_ingresado):
     
     return None
 
-def validar_padron_reniec(dni, emision_texto, caducidad_texto):
+def validar_padron_reniec(dni, digito_ingresado, emision_texto, caducidad_texto):
+    error_digito = digito_verificador_dni(dni, digito_ingresado)
+    if error_digito is not None:
+        return error_digito
+
     # Validamos que las fechas ingresadas tengan formato DD/MM/AAAA
     try:
         datetime.strptime(emision_texto.strip(), "%d/%m/%Y")

@@ -316,8 +316,8 @@ def registrar_tramite(usuario):
 
     #Se abre la conexión con la bd
     conexion = conectar_bd()
+    #La pausa "Presione Enter" la muestra menu.py al volver de esta función
     if conexion is None:
-        input("\nPresione Enter para regresar al menú.")
         return
 
     try:
@@ -412,4 +412,73 @@ def registrar_tramite(usuario):
         #Se cierra la conexión de bd luego de todo el proceso
         conexion.close()
 
-    input("\nPresione Enter para regresar al menú.")
+# Función para obtener los trámites registrados por el ciudadano autenticado
+def obtener_mis_tramites_bd(conexion, id_usuario):
+    cursor = None
+    try:
+        # Crear un cursor para devolver los registros como diccionarios
+        cursor = conexion.cursor(dictionary=True)
+
+        # Consultar los expedientes asociados al ciudadano autenticado del más reciente al más antiguo
+        cursor.execute("""
+            SELECT
+                e.numero_expediente,
+                e.asunto,
+                e.fecha_registro,
+                e.estado
+            FROM expediente e
+            INNER JOIN ciudadano c ON e.id_ciudadano = c.id_ciudadano
+            WHERE c.id_usuario = %s
+            ORDER BY e.fecha_registro DESC
+        """, (id_usuario,))
+        return cursor.fetchall()
+    except Error as e:
+        # Capturar errores de base de datos y devolver una lista vacía
+        print(f"\n[!] Error al obtener los trámites del ciudadano: {e}")
+        return []
+    finally:
+        # Cerrar el cursor al finalizar la consulta
+        if cursor is not None:
+            cursor.close()
+
+# Función para mostrar en pantalla los trámites del ciudadano autenticado
+def consultar_mis_tramites(usuario):
+    # Validar que el usuario tenga el rol de ciudadano
+    if usuario["id_rol"] != ROL_CIUDADANO:
+        print("No tiene permiso para acceder a esta sección.")
+        return
+
+    # Establecer y validar la conexión con la base de datos
+    conexion = conectar_bd()
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    try:
+        titulo_menu("Mis trámites")
+        tramites = obtener_mis_tramites_bd(conexion, usuario["id_usuario"])
+
+        # Validar si la lista de trámites está vacía
+        if len(tramites) == 0:
+            print("Aún no cuenta con trámites registrados.")
+            return
+
+        # Calcular el ancho dinámico del asunto para no recortar el texto
+        ancho_asunto = max(len(t["asunto"]) for t in tramites)
+        if ancho_asunto < 30:
+            ancho_asunto = 30
+        ancho_linea = 10 + ancho_asunto + 16 + 12 + 9
+
+        # Mostrar encabezado y registros de los trámites del ciudadano
+        print(f"{'N° Exp.':<10} | {'Asunto':<{ancho_asunto}} | {'Fecha':<16} | {'Estado':<12}")
+        print("-" * ancho_linea)
+
+        for t in tramites:
+            fecha = t["fecha_registro"].strftime("%d/%m/%Y %H:%M")
+            print(f"{t['numero_expediente']:<10} | {t['asunto']:<{ancho_asunto}} | {fecha:<16} | {t['estado']:<12}")
+
+        print("-" * ancho_linea)
+        print(f"Total de trámites: {len(tramites)}")
+
+    finally:
+        conexion.close()
