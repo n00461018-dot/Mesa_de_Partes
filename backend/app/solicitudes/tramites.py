@@ -316,8 +316,8 @@ def registrar_tramite(usuario):
 
     #Se abre la conexión con la bd
     conexion = conectar_bd()
+    #La pausa "Presione Enter" la muestra menu.py al volver de esta función
     if conexion is None:
-        input("\nPresione Enter para regresar al menú.")
         return
 
     try:
@@ -412,8 +412,6 @@ def registrar_tramite(usuario):
         #Se cierra la conexión de bd luego de todo el proceso
         conexion.close()
 
-    input("\nPresione Enter para regresar al menú.")
-    
 # Función para obtener los trámites registrados por el ciudadano autenticado
 def obtener_mis_tramites_bd(conexion, id_usuario):
     cursor = None
