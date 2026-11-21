@@ -83,3 +83,32 @@ def registrar_trabajador_bd(dni, nombre, apellido, correo, contrasena, id_area):
         if cursor is not None:
             cursor.close()
         conexion.close()
+
+#Se muestra el resumen de los datos ingresados y el área seleccionada
+def _mostrar_resumen(datos, area):
+    titulo_menu("Registrar Personal - Resumen")
+    print("Verifique los datos del nuevo trabajador:")
+    print("-" * 54)
+    print(f" DNI         : {datos['dni']}")
+    print(f" Nombres     : {datos['nombre']}")
+    print(f" Apellidos   : {datos['apellido']}")
+    print(f" Correo      : {datos['correo']}")
+    print(f" Área        : {area['nombre']}")
+    print(f" Rol         : Trabajador")
+    print("-" * 54)
+
+# Pide la confirmación S/N hasta recibir una respuesta válida
+# Devuelve True si confirma (S) y False si cancela (N o 'salir')
+def _confirmar_registro():
+    while True:
+        respuesta = input("\n¿Desea confirmar el registro? (S/N): ").strip().upper()
+        if respuesta == "S":
+            return True
+        if respuesta in ("N", "SALIR"):
+            return False
+        print("\nError: Debe ingresar S o N.")
+ 
+ 
+def _cancelar_registro():
+    print("\nRegistro cancelado. No se guardó ningún dato.")
+ 
