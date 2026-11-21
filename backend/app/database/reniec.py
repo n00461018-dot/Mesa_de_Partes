@@ -32,15 +32,20 @@ def digito_verificador_dni(dni, digito_ingresado):
     
     return None
 
+# Función para convertir un texto DD/MM/AAAA en fecha (lanza ValueError si el formato no es válido)
+def convertir_fecha(texto):
+    return datetime.strptime(texto.strip(), "%d/%m/%Y").date()
+
 def validar_padron_reniec(dni, digito_ingresado, emision_texto, caducidad_texto):
     error_digito = digito_verificador_dni(dni, digito_ingresado)
     if error_digito is not None:
         return error_digito
 
-    # Validamos que las fechas ingresadas tengan formato DD/MM/AAAA
+    # Validamos que las fechas ingresadas tengan formato DD/MM/AAAA y las convertimos a fecha
+    # (así "1/2/2025" y "01/02/2025" se consideran la misma fecha)
     try:
-        datetime.strptime(emision_texto.strip(), "%d/%m/%Y")
-        fecha_caducidad = datetime.strptime(caducidad_texto.strip(), "%d/%m/%Y").date()
+        fecha_emision = convertir_fecha(emision_texto)
+        fecha_caducidad = convertir_fecha(caducidad_texto)
     except ValueError:
         return "Formato de fecha inválido. Use el formato DD/MM/AAAA."
     
@@ -71,11 +76,15 @@ def validar_padron_reniec(dni, digito_ingresado, emision_texto, caducidad_texto)
     if indice_encontrador == -1:
         return f"El DNI {dni} no se encuentra en el padrón RENIEC."
     
+    # Convertimos las fechas del padrón para compararlas como fechas y no como texto
+    try:
+        emision_padron = convertir_fecha(emisiones[indice_encontrador])
+        caducidad_padron = convertir_fecha(caducidades[indice_encontrador])
+    except ValueError:
+        return f"El padrón RENIEC tiene una fecha con formato inválido para el DNI {dni}."
+
     # Comparamos las fechas de emisión y caducidad con las del padrón RENIEC
-    if (
-        emisiones[indice_encontrador].strip() != emision_texto.strip() or
-        caducidades[indice_encontrador].strip() != caducidad_texto.strip()
-    ):
+    if fecha_emision != emision_padron or fecha_caducidad != caducidad_padron:
         return f"La fecha de emisión o caducidad no coincide con el padrón RENIEC para el DNI {dni}."
     
     if fecha_caducidad < datetime.now().date():
