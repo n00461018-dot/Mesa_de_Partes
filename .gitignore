@@ -13,3 +13,9 @@ venv/
 # Configuración de editores
 .vscode/
 .idea/
+
+# Archivos temporales del sistema y de Office (ej. ~$documento.docx al tener abierto un Word)
+Thumbs.db
+desktop.ini
+.DS_Store
+~$*
