@@ -4,13 +4,6 @@ from mysql.connector import Error
 from database.conexion_bd import conectar_bd
 from database.consultas_bd import listar_areas
 
-def gestionar_personal_areas(usuario):
-
-    #Condición para validar que rol de usuario sea Administrador
-    if usuario["id_rol"] != ROL_ADMIN:
-        print("No tiene permisos para registrar personal.")
-
-        return
 
 #Se crea la función validar_datos_trabajador para la revisión del formato de datos
 def validar_datos_trabajador(dni, nombre, apellido, correo, contrasena):
@@ -111,4 +104,74 @@ def _confirmar_registro():
  
 def _cancelar_registro():
     print("\nRegistro cancelado. No se guardó ningún dato.")
+
+#Función principal para ejecutar el registro de personal en la tabla usuario con las validaciones y formato válido
+def registrar_personal(usuario):
+
+    #Condición para validar que el rol del usuario sea Administrador
+    if usuario["id_rol"] != ROL_ADMIN:
+        print("No tiene permisos para registrar personal.")
+        return
+ 
+    try:
+        titulo_menu("Registrar Personal")
+        print("Complete los datos del trabajador (o escriba 'salir' para cancelar).")
+        print("-" * 54)
+ 
+        #Pedir y validar cada campo al momento de ingresarlo (en cualquiera se puede cancelar)
+        datos = {}
+        for clave, mensaje, validar in CAMPOS_PERSONAL:
+            valor = pedir_campo(mensaje, validar)
+            if valor is None:
+                _cancelar_registro()
+                return
+            datos[clave] = valor
+ 
+        #Revisión final del formato de todo el registro
+        error = validar_datos_trabajador(
+            datos["dni"], datos["nombre"], datos["apellido"],
+            datos["correo"], datos["contrasena"]
+        )
+        if error is not None:
+            print(f"\nError: {error}")
+            return
+ 
+        #Consultar las areas y pedir que el administrador seleccione de una de la lista numerada
+        areas = _obtener_areas()
+        if areas is False:
+            print("\nNo se pudo consultar las áreas en la base de datos.")
+            return
+        if len(areas) == 0:
+            print("\nNo hay áreas registradas. No se puede registrar personal.")
+            return
+ 
+        print("-" * 54)
+        area = seleccionar_de_lista(
+            areas, campo="nombre", titulo="ÁREAS MUNICIPALES",
+            mensaje="Seleccione el área del trabajador: ", cancelar=("salir",)
+        )
+        if area is None:
+            _cancelar_registro()
+            return
+ 
+        #Mostrar el resumen y pedir confirmación antes de guardar
+        _mostrar_resumen(datos, area)
+        if not _confirmar_registro():
+            _cancelar_registro()
+            return
+ 
+        #Guardar en la tabla 'usuario' con rol Trabajador y el área elegida
+        exito = registrar_trabajador_bd(
+            datos["dni"], datos["nombre"], datos["apellido"],
+            datos["correo"], datos["contrasena"], area["id_area"]
+        )
+ 
+        if exito:
+            print(f"\n¡Trabajador {datos['nombre']} {datos['apellido']} "
+                  f"(DNI: {datos['dni']}) registrado exitosamente en el área '{area['nombre']}'!")
+        else:
+            print("\nNo se pudo completar el registro del trabajador.")
+ 
+    except ErrorBD:
+        print("\nNo se pudo verificar la información en la base de datos.")
  
