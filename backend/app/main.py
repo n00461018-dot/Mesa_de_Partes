@@ -31,4 +31,9 @@ def main():
 
 # Punto de entrada principal del programa
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        # Si el usuario presiona Ctrl+C en cualquier pantalla, se cierra sin mostrar el error de Python
+        # (las conexiones abiertas se cierran en los bloques finally de cada módulo)
+        print("\n\nEl sistema se ha cerrado correctamente.")
