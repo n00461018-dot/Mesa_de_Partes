@@ -5,6 +5,7 @@ from seguimiento.routes import menu_seguimiento, menu_cambio_estado
 from seguimiento.derivacion import menu_derivar
 from solicitudes.registrardocumento import registrar_documento
 from solicitudes.tramites import registrar_tramite
+from solicitudes.registrar_personal import registrar_personal
 from solicitudes.gestionar_personal import gestionar_personal_areas
 from solicitudes.reportes import menu_reportes
 from solicitudes.Expedientes_areas import buscar_expedientes_todas_las_areas
@@ -116,7 +117,7 @@ funciones_menu = {
         #"Registrar trámite": registrar_documento,
         "Registrar trámite": registrar_tramite,
         "Derivar trámites": menu_derivar,
-        "Registrar personal": "Ingresar el nombre de la funcion",
+        "Registrar personal": registrar_personal,
         "Gestionar ciudadanos":menu_ciudadanos,
         "Gestionar personal y áreas": gestionar_personal_areas,
         "Reportes (trámites por área y estado)": menu_reportes,
@@ -195,7 +196,8 @@ def ejecutar_menu(usuario):
                 "Reportes (trámites por área y estado)",
                 "Buscar trámites de todas las áreas",
                 "Mis trámites",
-                "Bandeja de correos"
+                "Bandeja de correos",
+                "Registrar personal"
             ):
                 funcion_menu(usuario)
                 input("\nPresione Enter para regresar al menú.")
