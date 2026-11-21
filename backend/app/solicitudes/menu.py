@@ -9,7 +9,7 @@ from solicitudes.gestionar_personal import gestionar_personal_areas
 from solicitudes.reportes import menu_reportes
 from solicitudes.Expedientes_areas import buscar_expedientes_todas_las_areas
 from solicitudes.bandeja_area import bandeja_mi_area
-from notificaciones.notificador_correo import menu_respuesta_correo
+from notificaciones.notificador_correo import menu_respuesta_correo, bandeja_correos_ciudadano
 from solicitudes.tramites import registrar_tramite, consultar_mis_tramites
 from solicitudes.buscar_tramites import buscar_tramites_area
 
@@ -105,6 +105,7 @@ def opciones_rol(id_rol):
             "Registrar trámite",
             "Seguimiento de expediente",
             "Mis trámites",
+            "Bandeja de correos",
             "Cerrar sesión",
         ]
     return []
@@ -126,6 +127,7 @@ funciones_menu = {
         "Seguimiento de expediente": ejecutar_seguimiento,
         "Cambio de estado": ejecutar_cambio_estado,
         "Registrar respuesta por correo": menu_respuesta_correo,
+        "Bandeja de correos": bandeja_correos_ciudadano,
     }
 
 #MENÚ DINÁMICO SEGÚN EL ROL
@@ -192,7 +194,8 @@ def ejecutar_menu(usuario):
                 "Gestionar personal y áreas",
                 "Reportes (trámites por área y estado)",
                 "Buscar trámites de todas las áreas",
-                "Mis trámites"
+                "Mis trámites",
+                "Bandeja de correos"
             ):
                 funcion_menu(usuario)
                 input("\nPresione Enter para regresar al menú.")
