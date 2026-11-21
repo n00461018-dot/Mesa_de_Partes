@@ -1,3 +1,9 @@
+import sys
+
+# Evita que Python cree las carpetas __pycache__ (.pyc) al ejecutar el sistema
+# Debe ir antes de importar los módulos del proyecto
+sys.dont_write_bytecode = True
+
 from solicitudes.extra import titulo_menu
 from auth.login import pantalla_login
 from solicitudes.menu import ejecutar_menu
