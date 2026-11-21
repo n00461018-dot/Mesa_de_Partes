@@ -31,3 +31,36 @@ def buscar_expediente(conexion, numero):
         return None
 
     return expediente
+
+
+# Verificar los permisos del usuario
+def validar_permiso(conexion, expediente, id_usuario):
+    cursor = conexion.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT id_rol, id_area
+        FROM usuario
+        WHERE id_usuario = %s
+    """, (id_usuario,))
+
+    usuario = cursor.fetchone()
+    cursor.close()
+
+    if usuario is None:
+        print("Usuario no encontrado.")
+        return False
+
+    if usuario["id_rol"] not in (1, 2):
+        print("No tiene permiso para registrar incidencias.")
+        return False
+
+    if usuario["id_rol"] == 2:
+        if usuario["id_area"] != expediente["id_area"]:
+            print("El expediente no pertenece a su área.")
+            return False
+
+    if expediente["estado"] != "En proceso":
+        print("El expediente no está en atención.")
+        return False
+
+    return True
