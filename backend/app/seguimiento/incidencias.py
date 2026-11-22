@@ -132,3 +132,5 @@ def registrar_incidencia(conexion, id_usuario):
     print("Descripción:", descripcion)
     print("Estado:", estado)
     print("Fecha y hora:", fecha_registro.strftime("%d/%m/%Y %H:%M:%S"))
+    print("ID del área:", id_area)
+    print("ID del usuario:", responsable)
