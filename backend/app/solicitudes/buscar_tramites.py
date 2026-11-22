@@ -10,16 +10,23 @@ def consultar_tramites_por_criterio(conexion, id_area, criterio, valor):
     try:
         cursor = conexion.cursor(dictionary=True)
 
-        # Base de la consulta uniendo expedientes, ciudadanos, tipos de trámite, estados y área
+        # Base de la consulta uniendo expedientes, ciudadanos, usuarios, tipos de trámite y área
         query = """
-            SELECT e.id_expediente, e.numero_expediente, tp.nombre_tramite AS tipo_tramite,
-                   CONCAT(c.nombre, ' ', c.apellido) AS ciudadano, c.dni, c.correo,
-                   e.asunto, e.fecha_registro, est.nombre_estado AS estado,
-                   a.nombre_area AS area, e.id_area
+            SELECT e.id_expediente,
+                   e.numero_expediente,
+                   tp.nombre AS tipo_tramite,
+                   CONCAT(u.nombre, ' ', u.apellido) AS ciudadano,
+                   u.dni,
+                   u.correo,
+                   e.asunto,
+                   e.fecha_registro,
+                   e.estado AS estado,
+                   a.nombre AS area,
+                   e.id_area
             FROM expediente e
             INNER JOIN ciudadano c ON e.id_ciudadano = c.id_ciudadano
+            INNER JOIN usuario u ON c.id_usuario = u.id_usuario
             INNER JOIN tipo_tramite tp ON e.id_tipo_tramite = tp.id_tipo_tramite
-            INNER JOIN estado est ON e.id_estado = est.id_estado
             INNER JOIN area a ON e.id_area = a.id_area
             WHERE e.id_area = %s
         """
@@ -35,10 +42,10 @@ def consultar_tramites_por_criterio(conexion, id_area, criterio, valor):
             query += " AND e.asunto LIKE %s"
             params.append(f"%{valor}%")
         elif criterio == "dni":
-            query += " AND c.dni = %s"
+            query += " AND u.dni = %s"
             params.append(valor)
         elif criterio == "correo":
-            query += " AND c.correo LIKE %s"
+            query += " AND u.correo LIKE %s"
             params.append(f"%{valor}%")
 
         # Ordena los expedientes de forma descendente por fecha de registro (más reciente primero)
