@@ -63,6 +63,25 @@ def ejecutar_cambio_estado(usuario):
     finally:
         conexion.close()
 
+
+# FUNCIÓN PARA REGISTRAR INCIDENCIAS
+def ejecutar_registrar_incidencia(usuario):
+    conexion = conectar_bd()
+
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    try:
+        registrar_incidencia(conexion, usuario["id_usuario"])
+
+    except Exception as error:
+        print("Error al registrar incidencia:", error)
+
+    finally:
+        conexion.close()
+
+
 #ROLES Y OPCIONES DEL MENÚ
 
 def nombre_del_rol(id_rol):
