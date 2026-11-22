@@ -159,10 +159,30 @@ def registrar_incidencia(conexion, id_usuario):
         )
 
         cursor.execute(sql, datos)
+        id_incidencia = cursor.lastrowid
         conexion.commit()
 
         print("Incidencia registrada correctamente.")
-        print("ID de incidencia:", cursor.lastrowid)
+        print("ID de incidencia:", id_incidencia)
+
+
+
+        # Verificar que la incidencia pertenezca al expediente
+
+        cursor.execute("""
+            SELECT id_incidencia, id_expediente
+            FROM incidencia
+            WHERE id_incidencia = %s
+              AND id_expediente = %s
+        """, (id_incidencia, expediente["id_expediente"]))
+
+        resultado = cursor.fetchone()
+
+        if resultado:
+            print("Incidencia asociada correctamente al expediente.")
+            print("Número de expediente:", numero)
+        else:
+            print("No se pudo verificar la asociación.")
 
     except Exception as error:
         conexion.rollback()
