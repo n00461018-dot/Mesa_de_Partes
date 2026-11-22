@@ -38,7 +38,7 @@ def iniciar_sesion(identificador, clave):
         cursor = conexion.cursor(dictionary=True)
         # Agregamos u.dni, u.id_area y c.id_ciudadano para usarlos luego en menu.py
         sql = """
-            SELECT u.id_usuario, u.dni, u.nombre, u.apellido, u.id_rol, 
+            SELECT u.id_usuario, u.dni, u.nombre, u.apellido, u.correo, u.id_rol,
                    u.id_area, a.nombre AS nombre_area, c.id_ciudadano
             FROM usuario u
             LEFT JOIN area a ON u.id_area = a.id_area
