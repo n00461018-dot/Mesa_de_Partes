@@ -8,6 +8,12 @@ from database.reniec import validar_padron_reniec
 # VALIDACIONES DE FORMATO
 # ==============================================================================
 
+# Longitudes máximas de cada campo según las columnas de la BD (tablas 'usuario' y 'ciudadano')
+NOMBRE_MAX = 100       # usuario.nombre y usuario.apellido VARCHAR(100)
+CORREO_MAX = 100       # usuario.correo VARCHAR(100)
+CONTRASENA_MAX = 255   # usuario.contrasena VARCHAR(255)
+DIRECCION_MAX = 200    # ciudadano.direccion VARCHAR(200)
+
 def validar_correo(correo):
     # Verificar que no tenga espacios, puntos seguidos y que contenga exactamente un @
     if " " in correo or ".." in correo or correo.count("@") != 1:
@@ -175,7 +181,37 @@ def _validar_dni_nuevo(dni):
     return None
 
 
+def _validar_nombre(texto):
+    # Nombres y apellidos: obligatorios, hasta 100 caracteres y solo letras (con tildes y ñ), espacios, apóstrofo o guion
+    if not texto:
+        return "Error: Este campo es obligatorio."
+    if len(texto) > NOMBRE_MAX:
+        return f"Formato inválido: No puede superar {NOMBRE_MAX} caracteres."
+    if not all(caracter.isalpha() or caracter in " '-" for caracter in texto):
+        return "Formato inválido: Solo se permiten letras, espacios, apóstrofo (') o guion (-)."
+    if not any(caracter.isalpha() for caracter in texto):
+        return "Formato inválido: Debe contener al menos una letra."
+    return None
+
+
+def _validar_contrasena(contrasena):
+    if not contrasena:
+        return "Error: Este campo es obligatorio."
+    if len(contrasena) > CONTRASENA_MAX:
+        return f"Formato inválido: La contraseña no puede superar {CONTRASENA_MAX} caracteres."
+    return None
+
+
+def _validar_direccion(direccion):
+    # La dirección es opcional, pero si se ingresa no debe superar el máximo de la BD
+    if len(direccion) > DIRECCION_MAX:
+        return f"Formato inválido: La dirección no puede superar {DIRECCION_MAX} caracteres."
+    return None
+
+
 def _validar_correo_nuevo(correo):
+    if len(correo) > CORREO_MAX:
+        return f"Formato inválido: El correo no puede superar {CORREO_MAX} caracteres."
     if not validar_correo(correo):
         return "Formato inválido: Ingrese un correo electrónico válido."
     # Verificar inmediatamente en la BD si el correo ya está registrado
@@ -196,12 +232,12 @@ CAMPOS_REGISTRO = [
     ("digito", "Código verificador (9no dígito al costado del DNI): ", _obligatorio),
     ("emision", "Fecha de emisión del DNI (DD/MM/AAAA): ", _obligatorio),
     ("caducidad", "Fecha de caducidad del DNI (DD/MM/AAAA): ", _obligatorio),
-    ("nombre", "Nombres: ", _obligatorio),
-    ("apellido", "Apellidos: ", _obligatorio),
+    ("nombre", "Nombres: ", _validar_nombre),
+    ("apellido", "Apellidos: ", _validar_nombre),
     ("correo", "Correo electrónico: ", _validar_correo_nuevo),
-    ("contrasena", "Contraseña: ", _obligatorio),
+    ("contrasena", "Contraseña: ", _validar_contrasena),
     ("telefono", "Teléfono / Celular: ", _validar_telefono_nuevo),
-    ("direccion", "Dirección (opcional, Enter para omitir): ", None),
+    ("direccion", "Dirección (opcional, Enter para omitir): ", _validar_direccion),
 ]
 
 
