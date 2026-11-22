@@ -120,6 +120,7 @@ def opciones_rol(id_rol):
             "Cambio de estado",
             "Derivar trámites",
             "Registrar respuesta por correo",
+            "registrar incidencia"
             "Cerrar sesión",
         ]
     elif id_rol == 3:  # Ciudadano
@@ -150,6 +151,8 @@ funciones_menu = {
         "Cambio de estado": ejecutar_cambio_estado,
         "Registrar respuesta por correo": menu_respuesta_correo,
         "Bandeja de correos": bandeja_correos_ciudadano,
+        "Registrar incidencia": ejecutar_registrar_incidencia,
+
     }
 
 #MENÚ DINÁMICO SEGÚN EL ROL
