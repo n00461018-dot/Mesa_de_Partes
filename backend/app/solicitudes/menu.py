@@ -221,6 +221,7 @@ def ejecutar_menu(usuario):
                 "Buscar trámites de todas las áreas",
                 "Mis trámites",
                 "Bandeja de correos",
+                "Registrar incidencia",
                 "Registrar personal"
             ):
                 funcion_menu(usuario)
