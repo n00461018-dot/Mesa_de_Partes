@@ -134,3 +134,41 @@ def registrar_incidencia(conexion, id_usuario):
     print("Fecha y hora:", fecha_registro.strftime("%d/%m/%Y %H:%M:%S"))
     print("ID del área:", id_area)
     print("ID del usuario:", responsable)
+
+
+
+    # Guardar la incidencia en MySQL
+    cursor = None
+    try:
+        cursor = conexion.cursor()
+
+        sql = """
+            INSERT INTO incidencia
+            (tipo_incidencia, descripcion, estado,
+             fecha_registro, id_expediente, id_usuario)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+
+        datos = (
+            tipo,
+            descripcion,
+            estado,
+            fecha_registro,
+            expediente["id_expediente"],
+            id_usuario
+        )
+
+        cursor.execute(sql, datos)
+        conexion.commit()
+
+        print("Incidencia registrada correctamente.")
+        print("ID de incidencia:", cursor.lastrowid)
+
+    except Exception as error:
+        conexion.rollback()
+        print("Error al guardar la incidencia:", error)
+
+    finally:
+        if cursor is not None:
+            cursor.close()
+
