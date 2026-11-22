@@ -1,3 +1,4 @@
+from datetime import datetime
 
 # Tipos de incidencias disponibles
 TIPOS = (
@@ -117,8 +118,12 @@ def registrar_incidencia(conexion, id_usuario):
 
     estado = "Abierta"
 
+    # Registrar fecha y hora actual
+    fecha_registro = datetime.now()
+
     print("\nDatos de la incidencia:")
     print("Expediente:", numero)
     print("Tipo:", tipo)
     print("Descripción:", descripcion)
     print("Estado:", estado)
+    print("Fecha y hora:", fecha_registro.strftime("%d/%m/%Y %H:%M:%S"))
