@@ -121,6 +121,11 @@ def registrar_incidencia(conexion, id_usuario):
     # Registrar fecha y hora actual
     fecha_registro = datetime.now()
 
+    # Identificar el área y usuario que registra
+    id_area = expediente["id_area"]
+    responsable = id_usuario
+
+
     print("\nDatos de la incidencia:")
     print("Expediente:", numero)
     print("Tipo:", tipo)
