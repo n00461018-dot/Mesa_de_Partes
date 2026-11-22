@@ -64,3 +64,61 @@ def validar_permiso(conexion, expediente, id_usuario):
         return False
 
     return True
+
+
+# Solicitar los datos de una incidencia
+def registrar_incidencia(conexion, id_usuario):
+    print("\n=== REGISTRAR INCIDENCIA ===")
+
+    numero = input("Número de expediente: ").strip()
+
+    if numero == "":
+        print("Debe ingresar un expediente.")
+        return
+
+    expediente = buscar_expediente(conexion, numero)
+
+    if expediente is None:
+        return
+
+    if not validar_permiso(conexion, expediente, id_usuario):
+        return
+
+    print("\nTipos de incidencia:")
+    for i, tipo in enumerate(TIPOS, 1):
+        print(f"{i}. {tipo}")
+
+    opcion = input("Seleccione el tipo: ").strip()
+
+    if not opcion.isdigit():
+        print("Opción inválida.")
+        return
+
+    opcion = int(opcion)
+
+    if opcion < 1 or opcion > len(TIPOS):
+        print("Opción fuera de rango.")
+        return
+
+    tipo = TIPOS[opcion - 1]
+
+    
+    # Solicitar y validar la descripción
+    while True:
+        descripcion = input("Descripción: ").strip()
+
+        if descripcion == "":
+            print("La descripción es obligatoria.")
+        elif len(descripcion) > 300:
+            print("Máximo 300 caracteres.")
+        else:
+            break
+
+
+    estado = "Abierta"
+
+    print("\nDatos de la incidencia:")
+    print("Expediente:", numero)
+    print("Tipo:", tipo)
+    print("Descripción:", descripcion)
+    print("Estado:", estado)
