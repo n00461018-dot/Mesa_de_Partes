@@ -120,7 +120,7 @@ def opciones_rol(id_rol):
             "Cambio de estado",
             "Derivar trámites",
             "Registrar respuesta por correo",
-            "registrar incidencia"
+            "Registrar incidencia",
             "Cerrar sesión",
         ]
     elif id_rol == 3:  # Ciudadano
