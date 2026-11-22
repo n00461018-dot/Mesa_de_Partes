@@ -13,6 +13,8 @@ from solicitudes.bandeja_area import bandeja_mi_area
 from notificaciones.notificador_correo import menu_respuesta_correo, bandeja_correos_ciudadano
 from solicitudes.tramites import registrar_tramite, consultar_mis_tramites
 from solicitudes.buscar_tramites import buscar_tramites_area
+from seguimiento.incidencias import registrar_incidencia
+
 
 # FUNCIÓN PARA CONSULTAR SEGUIMIENTO DE EXPEDIENTES
 def ejecutar_seguimiento(usuario):
