@@ -62,13 +62,37 @@ def menu_cambio_estado(conexion, id_usuario):
     cursor = conexion.cursor(dictionary=True)
 
     try:
-        # Consultar el expediente y su area responsable
+        # Consultar el rol y el area del usuario
+        cursor.execute("""
+            SELECT u.id_area, r.nombre AS rol
+            FROM usuario u
+            INNER JOIN rol r ON u.id_rol = r.id_rol
+            WHERE u.id_usuario = %s
+        """, (id_usuario,))
+        usuario = cursor.fetchone()
+
+        # Validar que el usuario exista
+        if usuario is None:
+            conexion.rollback()
+            print("Usuario no encontrado.")
+            return
+
+        # Validar el rol del usuario
+        rol = usuario["rol"].lower().strip()
+
+        if rol not in ("administrador", "empleado", "trabajador"):
+            conexion.rollback()
+            print("No tiene permiso para cambiar el estado.")
+            return
+
+        # Consultar el expediente segun el area del usuario
         cursor.execute("""
             SELECT e.estado, a.nombre AS area
             FROM expediente e
             INNER JOIN area a ON e.id_area = a.id_area
             WHERE e.numero_expediente = %s
-        """, (numero,))
+            AND (%s = 'administrador' OR e.id_area = %s)
+        """, (numero, rol, usuario["id_area"]))
 
         expediente = cursor.fetchone()
 
