@@ -1,3 +1,9 @@
+import sys
+
+# Evita que Python cree las carpetas __pycache__ (.pyc) al ejecutar el sistema
+# Debe ir antes de importar los módulos del proyecto
+sys.dont_write_bytecode = True
+
 from solicitudes.extra import titulo_menu
 from auth.login import pantalla_login
 from solicitudes.menu import ejecutar_menu
@@ -17,6 +23,11 @@ def main():
         
         if opcion == "1":
             usuario = pantalla_login()
+            # Si agotó los 3 intentos se cierra el sistema (así no puede volver a intentar desde el menú)
+            if usuario is False:
+                titulo_menu("Salida")
+                print("Acceso bloqueado. El sistema se ha cerrado.")
+                break
             if usuario is not None:
                 ejecutar_menu(usuario)
         elif opcion == "2":
@@ -31,4 +42,9 @@ def main():
 
 # Punto de entrada principal del programa
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        # Si el usuario presiona Ctrl+C en cualquier pantalla, se cierra sin mostrar el error de Python
+        # (las conexiones abiertas se cierran en los bloques finally de cada módulo)
+        print("\n\nEl sistema se ha cerrado correctamente.")

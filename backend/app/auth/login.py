@@ -1,6 +1,16 @@
+import sys
+from getpass import getpass
 from mysql.connector import Error
 from solicitudes.extra import titulo_menu
 from database.conexion_bd import conectar_bd
+
+# Función para pedir la contraseña sin que se vea en pantalla mientras se escribe
+# Si el programa no se ejecuta en una terminal (por ejemplo, en pruebas automáticas) se usa input normal
+def leer_contrasena(mensaje):
+    if sys.stdin.isatty():
+        return getpass(mensaje)
+    return input(mensaje)
+
 
 # Función básica para validar el formato antes de consultar la BD
 def validar_formato_entrada(identificador, clave):
@@ -38,7 +48,7 @@ def iniciar_sesion(identificador, clave):
         cursor = conexion.cursor(dictionary=True)
         # Agregamos u.dni, u.id_area y c.id_ciudadano para usarlos luego en menu.py
         sql = """
-            SELECT u.id_usuario, u.dni, u.nombre, u.apellido, u.id_rol, 
+            SELECT u.id_usuario, u.dni, u.nombre, u.apellido, u.correo, u.id_rol,
                    u.id_area, a.nombre AS nombre_area, c.id_ciudadano
             FROM usuario u
             LEFT JOIN area a ON u.id_area = a.id_area
@@ -59,6 +69,8 @@ def iniciar_sesion(identificador, clave):
 
 
 # Función para mostrar el login con límite de intentos
+# Devuelve el diccionario del usuario si ingresa, None si escribe 'salir'
+# o False si agota los 3 intentos (main.py cierra el sistema en ese caso)
 def pantalla_login():
     # Contador de intentos permitidos
     intentos_restantes = 3
@@ -72,7 +84,7 @@ def pantalla_login():
         if identificador.lower() == "salir":
             return None
 
-        clave = input("Contraseña: ").strip()
+        clave = leer_contrasena("Contraseña: ").strip()
 
         # Primero validamos el formato sin gastar conexión a MySQL
         if not validar_formato_entrada(identificador, clave):
@@ -93,7 +105,7 @@ def pantalla_login():
             else:
                 print("\n[!] Ha superado el límite de 3 intentos fallidos. Acceso bloqueado.")
                 input("\nPresione Enter para salir del sistema.")
-                return None
+                return False
         else:
             # Si las credenciales son correctas, damos bienvenida y retornamos el diccionario
             print(f"\n[OK] ¡Bienvenido(a), {usuario['nombre']} {usuario['apellido']}!")

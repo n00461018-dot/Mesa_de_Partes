@@ -52,13 +52,14 @@ class NotificadorCorreo:
                 raise ValueError("Formato de correo electrónico inválido.")
 
             print("\n" + "=" * 54)
-            print("ENVÍO DE CORREO ELECTRÓNICO")
+            print(" ENVÍO DE CORREO ELECTRÓNICO")
+            print(" ")
             print(f" De:      {self.remitente_municipal}")
             print(f" Para:    {correo_destino}")
             print(f" Asunto:  {asunto}")
             print(f" Fecha:   {fecha_actual}")
             print("-" * 54)
-            print(f" {contenido}")
+            print(f"Contenido: {contenido}")
             print("=" * 54 + "\n")
 
             cursor.execute(
@@ -70,7 +71,7 @@ class NotificadorCorreo:
                 (fecha_actual, id_respuesta)
             )
             self.db.commit()
-            return {"enviado": True, "mensaje": "Correo enviado (simulado) y estado actualizado a 'Enviado'."}
+            return {"enviado": True, "mensaje": "[OK] Correo enviado a la bandeja del destinatario y estado actualizado a 'Enviado'."}
 
         except Exception as e:
             cursor.execute(
@@ -78,13 +79,26 @@ class NotificadorCorreo:
                 (id_respuesta,)
             )
             self.db.commit()
-            return {"enviado": False, "mensaje": f"Fallo en simulación de envío: {str(e)}"}
+            return {"enviado": False, "mensaje": f"[!] Fallo en el envío: {str(e)}"}
         finally:
             cursor.close()
 
-# FUNCIÓN PRINCIPAL DEL MÓDULO (CON CONEXIÓN INTERNA)
+
+# FUNCIÓN AUXILIAR PARA NO PERDER LO ESCRITO SI UN CAMPO QUEDA VACÍO
+def _pedir_dato_obligatorio(etiqueta, validar_email=False):
+    while True:
+        valor = input(etiqueta).strip()
+        if not valor:
+            print("[!] Este campo es obligatorio. Por favor, ingréselo.\n")
+            continue
+        if validar_email and not re.match(r"[^@]+@[^@]+\.[^@]+", valor):
+            print("[!] Formato de correo inválido (ej. usuario@dominio.com).\n")
+            continue
+        return valor
+
+
+# PANTALLA PARA ADMINISTRADOR Y TRABAJADOR (REGISTRAR Y ENVIAR)
 def menu_respuesta_correo(usuario):
-    # Validar que sea Administrador (1) o Trabajador (2)
     if usuario["id_rol"] not in (1, 2):
         print("No tiene permiso para registrar respuestas por correo.")
         return
@@ -108,15 +122,42 @@ def menu_respuesta_correo(usuario):
             opcion = input("\nSeleccione una opción: ").strip()
 
             if opcion == "1":
-                try:
-                    id_exp = int(input("\nID del Expediente: ").strip())
-                except ValueError:
-                    input("\nEl ID del expediente debe ser numérico. Presione Enter para continuar.")
+                # Permitir buscar por ID interno o por el numero visible del expediente.
+                while True:
+                    expediente_str = input("\nID o numero de Expediente (0 para cancelar): ").strip()
+                    if expediente_str == "0":
+                        id_exp = None
+                        break
+                    if not expediente_str:
+                        print("[!] Debe ingresar un ID o numero de expediente.")
+                        continue
+
+                    id_busqueda = int(expediente_str) if expediente_str.isdigit() else 0
+                    cursor = conexion.cursor(dictionary=True)
+                    cursor.execute("""
+                        SELECT e.id_expediente, e.numero_expediente, u.correo
+                        FROM expediente e
+                        INNER JOIN ciudadano c ON e.id_ciudadano = c.id_ciudadano
+                        INNER JOIN usuario u ON c.id_usuario = u.id_usuario
+                        WHERE e.id_expediente = %s OR e.numero_expediente = %s
+                    """, (id_busqueda, expediente_str))
+                    exp_info = cursor.fetchone()
+                    cursor.close()
+
+                    if not exp_info:
+                        print(f"[!] No existe ningun expediente con el identificador '{expediente_str}'.")
+                        continue
+                    print(f"[Info] Expediente {exp_info['numero_expediente']} - Correo registrado del ciudadano: {exp_info['correo']}")
+                    id_exp = exp_info["id_expediente"]
+                    break
+
+                if id_exp is None:
                     continue
 
-                correo = input("Correo de destino: ").strip()
-                asunto = input("Asunto: ").strip()
-                contenido = input("Contenido del mensaje: ").strip()
+                # Solicitar cada campo obligando a llenarlo sin borrar los anteriores
+                correo = _pedir_dato_obligatorio("Correo de destino: ", validar_email=True)
+                asunto = _pedir_dato_obligatorio("Asunto: ")
+                contenido = _pedir_dato_obligatorio("Contenido del mensaje: ")
                 
                 enviar_ahora = input("¿Deseas enviar el correo ahora mismo? (s/n): ").strip().lower()
                 enviar_inmediato = (enviar_ahora == 's')
@@ -165,5 +206,52 @@ def menu_respuesta_correo(usuario):
                 break
             else:
                 input("\nOpción no válida. Presione Enter para reintentar.")
+    finally:
+        conexion.close()
+
+
+# BANDEJA DE ENTRADA DEL CIUDADANO EN CONSOLA
+def bandeja_correos_ciudadano(usuario):
+    if usuario["id_rol"] != 3:
+        print("Esta bandeja es exclusiva para ciudadanos.")
+        return
+
+    conexion = conectar_bd()
+    if conexion is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    try:
+        titulo_menu("Bandeja de Correos Recibidos")
+        print(f"Bandeja de: {usuario['correo']}\n")
+
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT rc.id_respuesta, e.numero_expediente, rc.asunto, rc.contenido, rc.fecha_envio
+            FROM respuesta_correo rc
+            INNER JOIN expediente e ON rc.id_expediente = e.id_expediente
+            WHERE rc.correo_destino = %s
+              AND rc.estado_envio = 'Enviado'
+            ORDER BY rc.fecha_envio DESC
+        """, (usuario["correo"],))
+        correos = cursor.fetchall()
+        cursor.close()
+
+        if not correos:
+            print("No tiene mensajes nuevos en su bandeja de entrada.")
+            return
+
+        for c in correos:
+            fecha = c["fecha_envio"].strftime("%d/%m/%Y %H:%M") if c["fecha_envio"] else "Sin fecha"
+            print("=" * 54)
+            print(f" De:         mesadepartes@municipalidad.test")
+            print(f" Expediente: {c['numero_expediente']}")
+            print(f" Fecha:      {fecha}")
+            print(f" Asunto:     {c['asunto']}")
+            print("-" * 54)
+            print(f" {c['contenido']}")
+            print("=" * 54 + "\n")
+
+        print(f"Total de correos recibidos: {len(correos)}")
     finally:
         conexion.close()
