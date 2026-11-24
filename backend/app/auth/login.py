@@ -1,6 +1,16 @@
+import sys
+from getpass import getpass
 from mysql.connector import Error
 from solicitudes.extra import titulo_menu
 from database.conexion_bd import conectar_bd
+
+# Función para pedir la contraseña sin que se vea en pantalla mientras se escribe
+# Si el programa no se ejecuta en una terminal (por ejemplo, en pruebas automáticas) se usa input normal
+def leer_contrasena(mensaje):
+    if sys.stdin.isatty():
+        return getpass(mensaje)
+    return input(mensaje)
+
 
 # Función básica para validar el formato antes de consultar la BD
 def validar_formato_entrada(identificador, clave):
@@ -74,7 +84,7 @@ def pantalla_login():
         if identificador.lower() == "salir":
             return None
 
-        clave = input("Contraseña: ").strip()
+        clave = leer_contrasena("Contraseña: ").strip()
 
         # Primero validamos el formato sin gastar conexión a MySQL
         if not validar_formato_entrada(identificador, clave):
