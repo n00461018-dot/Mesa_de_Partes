@@ -109,7 +109,7 @@ def menu_cambio_estado(conexion, id_usuario):
 
     # Verificar si existe el expediente
     if expediente is None:
-        print("Expediente no encontrado o no pertenese a su area.")
+        print("Expediente no encontrado o no pertenece a su area.")
         return
 
     estado = expediente["estado"]
