@@ -1,7 +1,8 @@
 import os
 from datetime import datetime
 
-RUTA_PADRON_RENIEC = "database/padron_reniec.txt"
+# Se busca el padrón en la misma carpeta que este archivo, así funciona desde cualquier lugar donde se ejecute el sistema
+RUTA_PADRON_RENIEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "padron_reniec.txt")
 
 # Función para el calculo y validación del digito verificador del DNI
 def digito_verificador_dni(dni, digito_ingresado):
