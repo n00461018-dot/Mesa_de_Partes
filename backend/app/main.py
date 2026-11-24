@@ -23,6 +23,11 @@ def main():
         
         if opcion == "1":
             usuario = pantalla_login()
+            # Si agotó los 3 intentos se cierra el sistema (así no puede volver a intentar desde el menú)
+            if usuario is False:
+                titulo_menu("Salida")
+                print("Acceso bloqueado. El sistema se ha cerrado.")
+                break
             if usuario is not None:
                 ejecutar_menu(usuario)
         elif opcion == "2":
