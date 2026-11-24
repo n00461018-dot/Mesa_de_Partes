@@ -2,6 +2,7 @@ from mysql.connector import Error
 from solicitudes.extra import titulo_menu, validar_dni
 from database.conexion_bd import conectar_bd
 from database.reniec import validar_padron_reniec
+from auth.login import leer_contrasena
 
 
 # ==============================================================================
@@ -241,10 +242,11 @@ CAMPOS_REGISTRO = [
 ]
 
 
-def pedir_campo(mensaje, validar=None):
+def pedir_campo(mensaje, validar=None, oculto=False):
     # Pide un dato hasta que sea válido. Devuelve None si el usuario escribe 'salir'
+    # Con oculto=True no se muestra lo que se escribe (para contraseñas)
     while True:
-        valor = input(mensaje).strip()
+        valor = (leer_contrasena(mensaje) if oculto else input(mensaje)).strip()
         if valor.lower() == "salir":
             return None
 
@@ -264,7 +266,7 @@ def pantalla_registrar_ciudadano():
             # 1. Pedir y validar cada campo al momento de ingresarlo
             datos = {}
             for clave, mensaje, validar in CAMPOS_REGISTRO:
-                valor = pedir_campo(mensaje, validar)
+                valor = pedir_campo(mensaje, validar, oculto=(clave == "contrasena"))
                 if valor is None:
                     return
                 datos[clave] = valor
