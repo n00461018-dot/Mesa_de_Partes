@@ -59,6 +59,8 @@ def iniciar_sesion(identificador, clave):
 
 
 # Función para mostrar el login con límite de intentos
+# Devuelve el diccionario del usuario si ingresa, None si escribe 'salir'
+# o False si agota los 3 intentos (main.py cierra el sistema en ese caso)
 def pantalla_login():
     # Contador de intentos permitidos
     intentos_restantes = 3
@@ -93,7 +95,7 @@ def pantalla_login():
             else:
                 print("\n[!] Ha superado el límite de 3 intentos fallidos. Acceso bloqueado.")
                 input("\nPresione Enter para salir del sistema.")
-                return None
+                return False
         else:
             # Si las credenciales son correctas, damos bienvenida y retornamos el diccionario
             print(f"\n[OK] ¡Bienvenido(a), {usuario['nombre']} {usuario['apellido']}!")
